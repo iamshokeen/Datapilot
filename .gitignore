@@ -68,6 +68,12 @@ dump.rdb
 Thumbs.db
 .DS_Store
 
+# Claude Code memory
+.claude/
+
+# v0 download (source files, not needed in repo)
+Frontend_v0/
+
 # Test coverage
 htmlcov/
 .coverage
