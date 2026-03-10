@@ -15,7 +15,10 @@ class SQLParser:
         normalized = self._normalize(sql)
         if not normalized.lstrip().startswith(("SELECT", "WITH")):
             return f"SQL must start with SELECT, got: {normalized[:50]}"
-        words = set(re.findall(r"\b([A-Z_]+)\b", normalized))
+        # Strip string literals before keyword check to avoid false positives
+        # e.g. 'promotion_calls' containing CALL as a substring
+        no_strings = re.sub(r"'[^']*'", " ", normalized)
+        words = set(re.findall(r"\b([A-Z]+)\b", no_strings))
         blocked = words & BLOCKED_KEYWORDS
         if blocked:
             return f"SQL contains blocked keywords: {blocked}"

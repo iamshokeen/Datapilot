@@ -37,7 +37,7 @@ def query_planner(state: AgentState) -> AgentState:
 
     try:
         response = _client.messages.create(
-            model="claude-sonnet-4-5-20251001",
+            model="claude-sonnet-4-5",
             max_tokens=512,
             system=_SYSTEM,
             messages=[{"role": "user", "content": question}],
