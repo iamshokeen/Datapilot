@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 
 def _get_connection_string(connection_id: str) -> str:
     """Fetch connection string from db_connections table."""
-    return asyncio.run(_async_get_connection_string(connection_id))
+    import concurrent.futures
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        return executor.submit(asyncio.run, _async_get_connection_string(connection_id)).result()
 
 
 async def _async_get_connection_string(connection_id: str) -> str:
