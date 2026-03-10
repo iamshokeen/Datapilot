@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 class LLMClient(ABC):
     @abstractmethod
     def complete(self, system_prompt: str, user_message: str,
-                 temperature: float = 0.0, max_tokens: int = 2048) -> str: ...
+                 temperature: float = 0.0, max_tokens: int = 2048,
+                 cache_system_prompt: bool = False) -> str: ...
     @property
     @abstractmethod
     def model_name(self) -> str: ...
@@ -23,7 +24,9 @@ class OpenAIClient(LLMClient):
         self._client = OpenAI(api_key=settings.openai_api_key)
         self._model = model
 
-    def complete(self, system_prompt, user_message, temperature=0.0, max_tokens=2048) -> str:
+    def complete(self, system_prompt, user_message, temperature=0.0, max_tokens=2048,
+                 cache_system_prompt: bool = False) -> str:
+        # OpenAI has its own caching mechanism — cache_system_prompt flag ignored
         response = self._client.chat.completions.create(
             model=self._model, temperature=temperature, max_tokens=max_tokens,
             messages=[{"role": "system", "content": system_prompt},
@@ -39,10 +42,16 @@ class AnthropicClient(LLMClient):
         self._client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         self._model = model
 
-    def complete(self, system_prompt, user_message, temperature=0.0, max_tokens=2048) -> str:
+    def complete(self, system_prompt, user_message, temperature=0.0, max_tokens=2048,
+                 cache_system_prompt: bool = False) -> str:
+        system = (
+            [{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}]
+            if cache_system_prompt
+            else system_prompt
+        )
         response = self._client.messages.create(
             model=self._model, max_tokens=max_tokens, temperature=temperature,
-            system=system_prompt, messages=[{"role": "user", "content": user_message}])
+            system=system, messages=[{"role": "user", "content": user_message}])
         return response.content[0].text
 
     @property
@@ -54,7 +63,9 @@ class OllamaClient(LLMClient):
         self._base_url = settings.ollama_base_url.rstrip("/")
         self._model = model
 
-    def complete(self, system_prompt, user_message, temperature=0.0, max_tokens=2048) -> str:
+    def complete(self, system_prompt, user_message, temperature=0.0, max_tokens=2048,
+                 cache_system_prompt: bool = False) -> str:
+        # Ollama doesn't support prompt caching — flag ignored
         response = httpx.post(f"{self._base_url}/api/chat", timeout=120.0, json={
             "model": self._model, "stream": False,
             "options": {"temperature": temperature, "num_predict": max_tokens},

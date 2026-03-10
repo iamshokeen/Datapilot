@@ -39,7 +39,7 @@ def query_planner(state: AgentState) -> AgentState:
         response = _client.messages.create(
             model="claude-sonnet-4-5",
             max_tokens=512,
-            system=_SYSTEM,
+            system=[{"type": "text", "text": _SYSTEM, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": question}],
         )
         raw = response.content[0].text.strip()

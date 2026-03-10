@@ -29,6 +29,26 @@ Rules:
 - Preserve the intent of the original query.
 - Fix syntax errors, wrong column names, wrong table names, type mismatches.
 - If the error suggests a missing table/column, use a reasonable alternative or add a graceful fallback (e.g. COALESCE, CAST).
+- ROUND requires NUMERIC: always fix to ROUND(value::NUMERIC, 2) — never ROUND(double_precision, integer).
+"""
+
+
+_SIMPLIFY_SYSTEM = """You are an expert PostgreSQL query writer for the Lohono Stays analytics platform.
+
+The previous attempt to generate SQL for the user's question produced a query that was too long and got cut off.
+
+Your task: write a functionally equivalent but MORE CONCISE SQL query that produces the same result.
+
+Strategies to reduce length:
+- Combine multiple CTEs into a single query using subqueries or window functions where possible
+- For FY-over-FY comparisons, use conditional aggregation (SUM(CASE WHEN ... THEN ... END)) in one query instead of separate CTEs per year
+- Avoid repeating the channel CASE expression — use a subquery or CTE once and reference it
+- Remove redundant joins if the needed columns are already available
+
+Rules:
+- Return ONLY the raw SQL query — no markdown, no explanation, no backticks
+- ONLY SELECT statements
+- Must be valid PostgreSQL
 """
 
 
@@ -43,7 +63,23 @@ def sql_rewriter(state: AgentState) -> AgentState:
 
     logger.info("[sql_rewriter] Retry %d for question: %s", retry_count + 1, question)
 
-    prompt = f"""User question: {question}
+    # Choose strategy based on error type
+    is_truncated = error_msg and "SQL_TRUNCATED" in error_msg
+
+    if is_truncated:
+        logger.info("[sql_rewriter] Truncation detected — requesting simplified query")
+        system = _SIMPLIFY_SYSTEM
+        prompt = f"""User question: {question}
+
+The previous SQL query was too long and got cut off. Truncation reason: {error_msg}
+
+Partial SQL (cut off):
+{broken_sql[:500]}...
+
+Please write a simpler, more concise SQL query that answers the same question."""
+    else:
+        system = _SYSTEM
+        prompt = f"""User question: {question}
 
 Failed SQL:
 {broken_sql}
@@ -56,8 +92,8 @@ Please provide a corrected SQL query."""
     try:
         response = _client.messages.create(
             model="claude-sonnet-4-5",
-            max_tokens=1024,
-            system=_SYSTEM,
+            max_tokens=8192,
+            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": prompt}],
         )
         fixed_sql = response.content[0].text.strip()
@@ -70,7 +106,7 @@ Please provide a corrected SQL query."""
         return {
             **state,
             "sql_query": fixed_sql,
-            "sql_error": None,          # clear error so executor can retry
+            "sql_error": None,
             "retry_count": retry_count + 1,
             "execution_success": False,
         }

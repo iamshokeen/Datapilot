@@ -25,6 +25,7 @@ def accumulate_result(state: AgentState) -> AgentState:
             "analysis": state.get("analysis_result", {}),
             "execution_success": state.get("execution_success", False),
             "retries": state.get("retry_count", 0),
+            "error": state.get("sql_error"),
         }
     )
 

@@ -39,6 +39,7 @@ Your job: Convert the user's natural language question into a single, correct, e
 7. Use PostgreSQL date functions: DATE_TRUNC, EXTRACT, TO_CHAR, GENERATE_SERIES
 8. Use ILIKE for case-insensitive text search
 9. If the question cannot be answered with the given schema, output exactly: CANNOT_ANSWER
+10. ROUND requires NUMERIC — always cast: ROUND(value::NUMERIC, 2) — never ROUND(float_value, 2)
 
 ---
 
@@ -426,6 +427,8 @@ class SQLGenerator:
             system_prompt=system_prompt,
             user_message=question,
             temperature=0.0,  # Deterministic — SQL generation needs consistency
+            max_tokens=8192,  # Complex queries with multiple CTEs need room
+            cache_system_prompt=True,  # Cache the 22K-char domain prompt (5 min TTL)
         )
 
         return self._parse_output(raw_output, question)
@@ -451,6 +454,18 @@ class SQLGenerator:
                 model=self.llm.model_name,
             )
 
+        # Detect truncated output before validation
+        truncation_reason = self._detect_truncation(sql)
+        if truncation_reason:
+            logger.warning(f"SQL appears truncated ({truncation_reason}): '{question[:80]}'")
+            return SQLGenerationResult(
+                sql=sql,
+                can_answer=False,
+                raw_output=raw_output,
+                model=self.llm.model_name,
+                validation_error=f"SQL_TRUNCATED: {truncation_reason}",
+            )
+
         # Validate: only allow SELECT statements
         validation_error = self.parser.validate_select_only(sql)
         if validation_error:
@@ -470,6 +485,39 @@ class SQLGenerator:
             raw_output=raw_output,
             model=self.llm.model_name,
         )
+
+    def _detect_truncation(self, sql: str) -> str | None:
+        """
+        Returns a reason string if the SQL looks truncated, None if it looks complete.
+        Checks: unbalanced parentheses, unclosed string literals, dangling keywords.
+        """
+        stripped = sql.strip()
+        if not stripped:
+            return None
+
+        # Unbalanced parentheses
+        if stripped.count("(") != stripped.count(")"):
+            return f"unbalanced parentheses ({stripped.count('(')} open, {stripped.count(')')} close)"
+
+        # Unclosed string literal — replace escaped quotes ('') then count remaining '
+        cleaned = stripped.replace("''", "")
+        if cleaned.count("'") % 2 != 0:
+            return "unclosed string literal"
+
+        # Ends with a dangling keyword that expects more tokens
+        _DANGLING = {
+            "SELECT", "FROM", "WHERE", "AND", "OR", "ON", "CASE", "WHEN",
+            "THEN", "ELSE", "JOIN", "INNER", "LEFT", "RIGHT", "FULL", "OUTER",
+            "CROSS", "GROUP", "ORDER", "HAVING", "WITH", "AS", "IN", "NOT",
+            "BETWEEN", "LIKE", "ILIKE", "BY", "UNION", "INTERSECT", "EXCEPT",
+            "COALESCE", "NULLIF", "CAST", "OVER", "PARTITION", "INTERVAL",
+            "FILTER", "DISTINCT", "INTO", "SET",
+        }
+        last_token = stripped.split()[-1].upper().rstrip(",").rstrip("(")
+        if last_token in _DANGLING:
+            return f"ends with dangling keyword '{last_token}'"
+
+        return None
 
 
 # ------------------------------------------------------------------ #
