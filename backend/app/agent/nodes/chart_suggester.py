@@ -66,14 +66,14 @@ def chart_suggester(state: AgentState) -> AgentState:
     # Use the first (or largest) result set for chart inference
     best = max(
         all_results,
-        key=lambda r: r.get("analysis", {}).get("row_count", 0),
+        key=lambda r: (r.get("analysis") or {}).get("row_count", 0),
         default=None,
     )
 
     if not best:
         return {**state, "chart_suggestion": _FALLBACK}
 
-    analysis: dict = best.get("analysis", {})
+    analysis: dict = best.get("analysis") or {}
     rows: list[dict] = analysis.get("rows", [])
     columns: list[str] = analysis.get("columns", list(rows[0].keys()) if rows else [])
 

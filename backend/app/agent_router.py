@@ -117,7 +117,7 @@ async def agent_ask(request: AgentAskRequest):
     # Build sub-question result summaries
     results_out: list[SubQuestionResult] = []
     for r in final.get("results", []):
-        analysis = r.get("analysis", {})
+        analysis = r.get("analysis") or {}
         results_out.append(
             SubQuestionResult(
                 sub_question=r.get("sub_question", ""),

@@ -65,7 +65,7 @@ Please write the narrative summary."""
 
     try:
         response = _client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-5-20251001",
             max_tokens=512,
             system=_SYSTEM,
             messages=[{"role": "user", "content": prompt}],
@@ -77,6 +77,6 @@ Please write the narrative summary."""
         logger.error("[insight_narrator] Failed: %s", exc)
         return {
             **state,
-            "narrative": f"Analysis complete. {len(all_results)} sub-question(s) processed with {sum(r.get('analysis', {}).get('row_count', 0) for r in all_results)} total rows returned.",
+            "narrative": f"Analysis complete. {len(all_results)} sub-question(s) processed with {sum(((r or {}).get('analysis') or {}).get('row_count', 0) for r in all_results)} total rows returned.",
         }
 

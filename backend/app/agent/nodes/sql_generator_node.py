@@ -18,7 +18,7 @@ from app.core.sql_generator import SQLGenerator
 logger = logging.getLogger(__name__)
 
 
-async def sql_generator(state: AgentState) -> AgentState:
+def sql_generator(state: AgentState) -> AgentState:
     sub_questions: list[str] = state.get("sub_questions", [])
     idx: int = state.get("current_sub_q_index", 0)
     question = sub_questions[idx] if idx < len(sub_questions) else state["original_question"]
@@ -34,8 +34,10 @@ async def sql_generator(state: AgentState) -> AgentState:
 
     logger.info("[sql_generator] Generating SQL for: %s", question)
     try:
-        # Now we can await directly since this node is async
-        sql = await _generate_sql_with_context(state["connection_id"], question)
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(asyncio.run, _generate_sql_with_context(state["connection_id"], question))
+            sql = future.result()
         logger.info("[sql_generator] SQL: %s", sql)
         return {
             **state,

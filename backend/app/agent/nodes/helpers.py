@@ -66,7 +66,7 @@ def assemble_response(state: AgentState) -> AgentState:
     # Merge rows from all sub-questions for the primary data field
     combined_rows: list[dict] = []
     for r in all_results:
-        rows = r.get("analysis", {}).get("rows", [])
+        rows = (r.get("analysis") or {}).get("rows", [])
         # Convert Decimal and other non-JSON types
         combined_rows.extend([_jsonify_dict(row) for row in rows])
 
