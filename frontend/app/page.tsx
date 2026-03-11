@@ -122,6 +122,7 @@ export default function DataPilotApp() {
         <ChatInterface
           connection={connection}
           messages={messages}
+          sessionId={sessionId}
           onQuery={handleQuery}
           onConnect={() => setShowConnectionModal(true)}
         />

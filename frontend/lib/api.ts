@@ -20,6 +20,23 @@ export async function connectDatabase(data: {
   return response.json()
 }
 
+export async function submitFeedback(data: {
+  session_id: string
+  turn_number: number
+  verdict: "up" | "down"
+}): Promise<{ ok: boolean; verified: boolean; lore_updated: boolean }> {
+  const response = await fetch(`${API_BASE_URL}/agent/feedback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || `Feedback failed (${response.status})`)
+  }
+  return response.json()
+}
+
 export async function askQuestion(data: {
   connection_id: string
   question: string

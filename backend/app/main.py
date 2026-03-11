@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import ask, connect, health
 from app.agent_router import router as agent_router
+from app.api.routes.feedback import router as feedback_router
 from app.config import settings
 
 structlog.configure(
@@ -21,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(
     title="DataPilot API",
-    description="AI-powered BI Agent - ask questions about any PostgreSQL database in plain English",
+    description="AI-powered BI Agent — ask questions about any PostgreSQL database in plain English",
     version="2.0.0",
 )
 
@@ -33,13 +34,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Phase 1 routes (unchanged)
 app.include_router(health.router, tags=["Health"])
 app.include_router(connect.router, prefix="/connect", tags=["Connection"])
 app.include_router(ask.router, prefix="/ask", tags=["Query"])
-
-# Phase 2 agent route
 app.include_router(agent_router)
+app.include_router(feedback_router)
 
 @app.on_event("startup")
 async def startup():

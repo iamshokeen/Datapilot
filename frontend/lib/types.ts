@@ -44,6 +44,8 @@ export interface QueryResponse {
   processing_time_ms: number
   session_id?: string
   requires_new_query?: boolean
+  echo_tier?: number
+  echo_similarity?: number
 }
 
 export interface ChatMessage {

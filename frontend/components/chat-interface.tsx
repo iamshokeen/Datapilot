@@ -21,6 +21,7 @@ import type { Connection, ChatMessage } from "@/lib/types"
 interface ChatInterfaceProps {
   connection: Connection | null
   messages: ChatMessage[]
+  sessionId?: string
   onQuery: (question: string) => void
   onConnect: () => void
 }
@@ -51,6 +52,7 @@ const EXAMPLE_QUESTIONS = [
 export function ChatInterface({
   connection,
   messages,
+  sessionId,
   onQuery,
   onConnect,
 }: ChatInterfaceProps) {
@@ -201,7 +203,11 @@ export function ChatInterface({
                       </div>
                     ) : msg.response ? (
                       <div className="-mx-3">
-                        <QueryResult response={msg.response} />
+                        <QueryResult
+                          response={msg.response}
+                          sessionId={sessionId}
+                          turnNumber={messages.filter(m => m.response !== null).findIndex(m => m.id === msg.id)}
+                        />
                       </div>
                     ) : null}
                   </div>

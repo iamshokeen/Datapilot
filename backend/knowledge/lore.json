@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "LORE — Learned Operational Rules & Evidence. Auto-updated on thumbs-up. Not yet injected into pipeline.",
+    "last_updated": null,
+    "total_verified_queries": 0
+  },
+  "verified_filters": {},
+  "metric_definitions": {},
+  "common_joins": {},
+  "business_terms": {},
+  "observed_patterns": []
+}
