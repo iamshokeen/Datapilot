@@ -51,3 +51,18 @@ CREATE TABLE IF NOT EXISTS query_history (
 
 CREATE INDEX IF NOT EXISTS idx_query_history_connection
     ON query_history (connection_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS conversation_turns (
+    id              SERIAL          PRIMARY KEY,
+    session_id      VARCHAR(100)    NOT NULL,
+    connection_id   UUID            NOT NULL REFERENCES db_connections(id) ON DELETE CASCADE,
+    turn_number     INTEGER         NOT NULL DEFAULT 0,
+    question        TEXT            NOT NULL,
+    narrative       TEXT,
+    summary         TEXT,
+    data            JSONB,
+    created_at      TIMESTAMP       NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_conv_turns_session
+    ON conversation_turns (session_id, created_at DESC);

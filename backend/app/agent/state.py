@@ -10,10 +10,15 @@ class AgentState(TypedDict, total=False):
     # ── Input ──────────────────────────────────────────────────────────────
     connection_id: str              # database connection ID
     original_question: str          # raw user question
+    session_id: Optional[str]       # multi-turn session identifier
+
+    # ── Conversation history (multi-turn) ──────────────────────────────────
+    conversation_history: list[dict]  # [{question, summary, data}] last N turns
 
     # ── Query Planner ──────────────────────────────────────────────────────
     sub_questions: list[str]        # decomposed sub-questions (≥1)
     current_sub_q_index: int        # which sub-question we're processing
+    requires_new_query: bool        # True = needs SQL; False = re-analyse prev data
 
     # ── SQL Generator ──────────────────────────────────────────────────────
     sql_query: str                  # generated SQL for current sub-question
@@ -39,4 +44,3 @@ class AgentState(TypedDict, total=False):
     # ── Final response ─────────────────────────────────────────────────────
     final_response: dict            # assembled API response payload
     error: Optional[str]            # top-level error message
-

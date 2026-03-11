@@ -1,48 +1,50 @@
 """
 DataPilot Phase 2 — LangGraph Agent Graph
-==========================================
 
 Flow:
-                        ┌─────────────────────────────────┐
-                        │         query_planner           │
-                        └──────────────┬──────────────────┘
-                                       │
-                        ┌──────────────▼──────────────────┐
-                        │         sql_generator           │◄──────────────────┐
-                        └──────────────┬──────────────────┘                   │
-                                       │                                       │
-                        ┌──────────────▼──────────────────┐                   │
-                        │         sql_executor            │                   │
-                        └──────────────┬──────────────────┘                   │
-                                       │                                       │
-                           ┌───────────┴───────────┐                          │
-                        success                  error                        │
-                           │                       │                          │
-                    ┌──────▼──────┐         ┌──────▼──────┐    retry < 2     │
-                    │python_analyst│         │sql_rewriter  ├──────────────────┘
-                    └──────┬──────┘         └──────┬──────┘
-                           │                       │ retry >= 2
-                           │               ┌───────▼───────────┐
-                           │               │ accumulate (error)│
-                           │               └───────────────────┘
-                    ┌──────▼──────────────────────────────────┐
-                    │         accumulate_result               │
-                    └──────────────┬──────────────────────────┘
+                       ┌─────────────────────────────────┐
+                       │         query_planner           │
+                       └──────────────┬──────────────────┘
+                                      │
+                          ┌───────────┴──────────────┐
+                    new query needed           reuse prev data
+                          │                          │
+           ┌──────────────▼──────────────┐           │
+           │         sql_generator       │◄──────────────────┐
+           └──────────────┬──────────────┘                   │
+                          │                                   │
+           ┌──────────────▼──────────────┐                   │
+           │         sql_executor        │                   │
+           └──────────────┬──────────────┘                   │
+                          │                                   │
+              ┌───────────┴───────────┐                      │
+           success                 error                     │
+              │                       │                      │
+       ┌──────▼──────┐         ┌──────▼──────┐  retry < 2  │
+       │python_analyst│◄────────┤sql_rewriter  ├─────────────┘
+       └──────┬──────┘         └──────┬──────┘
+              │                       │ retry >= 2
+              │               ┌───────▼───────────┐
+              │               │ accumulate (error)│
+              │               └───────────────────┘
+       ┌──────▼──────────────────────────────────┐
+       │         accumulate_result               │
+       └──────────────┬──────────────────────────┘
+                      │
+          ┌───────────┴───────────┐
+     more sub-qs             all done
+          │                       │
+ (back to sql_generator)   ┌──────▼──────────────┐
+                            │  insight_narrator   │
+                            └──────┬──────────────┘
                                    │
-                       ┌───────────┴───────────┐
-                  more sub-qs             all done
-                       │                       │
-              (back to sql_generator)   ┌──────▼──────────────┐
-                                        │  insight_narrator   │
-                                        └──────┬──────────────┘
-                                               │
-                                        ┌──────▼──────────────┐
-                                        │  chart_suggester    │
-                                        └──────┬──────────────┘
-                                               │
-                                        ┌──────▼──────────────┐
-                                        │  assemble_response  │
-                                        └─────────────────────┘
+                            ┌──────▼──────────────┐
+                            │  chart_suggester    │
+                            └──────┬──────────────┘
+                                   │
+                            ┌──────▼──────────────┐
+                            │  assemble_response  │
+                            └─────────────────────┘
 """
 import logging
 
@@ -67,6 +69,14 @@ MAX_RETRIES = 2
 
 
 # ── Routing functions ────────────────────────────────────────────────────────
+
+def route_after_planner(state: AgentState) -> str:
+    """After query_planner: needs new SQL vs re-analyse previous data."""
+    if state.get("requires_new_query", True):
+        return "sql_generator"
+    logger.info("[router] Re-using previous data → python_analyst")
+    return "python_analyst"
+
 
 def route_after_executor(state: AgentState) -> str:
     """After SQL execution: success → python_analyst, failure → rewriter or give_up."""
@@ -118,10 +128,19 @@ def build_graph() -> StateGraph:
     # Entry point
     graph.set_entry_point("query_planner")
 
+    # Conditional routing after planner (new query vs reuse data)
+    graph.add_conditional_edges(
+        "query_planner",
+        route_after_planner,
+        {
+            "sql_generator": "sql_generator",
+            "python_analyst": "python_analyst",
+        },
+    )
+
     # Linear edges
-    graph.add_edge("query_planner", "sql_generator")
     graph.add_edge("sql_generator", "sql_executor")
-    graph.add_edge("sql_rewriter", "sql_executor")        # rewriter feeds back into executor
+    graph.add_edge("sql_rewriter", "sql_executor")
     graph.add_edge("python_analyst", "accumulate_result")
     graph.add_edge("insight_narrator", "chart_suggester")
     graph.add_edge("chart_suggester", "assemble_response")
@@ -160,4 +179,3 @@ def compile_agent():
 agent = compile_agent()
 
 logger.info("[graph] DataPilot Phase 2 agent compiled successfully")
-

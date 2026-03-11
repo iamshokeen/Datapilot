@@ -53,3 +53,16 @@ class QueryHistory(Base):
     llm_model_used: Mapped[str | None] = mapped_column(String(100), nullable=True)
     response_payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class ConversationTurn(Base):
+    __tablename__ = "conversation_turns"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    connection_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("db_connections.id", ondelete="CASCADE"))
+    turn_number: Mapped[int] = mapped_column(Integer, default=0)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    narrative: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
