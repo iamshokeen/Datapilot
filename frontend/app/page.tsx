@@ -5,7 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { ChatInterface } from "@/components/chat-interface"
 import { ConnectionModal } from "@/components/connection-modal"
 import { askQuestion } from "@/lib/api"
-import type { Connection, QueryHistoryItem, QueryResponse } from "@/lib/types"
+import type { Connection, QueryHistoryItem, ChatMessage } from "@/lib/types"
 
 const STORAGE_KEY_CONNECTION = "datapilot_connection"
 const STORAGE_KEY_HISTORY = "datapilot_history"
@@ -14,9 +14,8 @@ export default function DataPilotApp() {
   const [connection, setConnection] = useState<Connection | null>(null)
   const [showConnectionModal, setShowConnectionModal] = useState(false)
   const [queryHistory, setQueryHistory] = useState<QueryHistoryItem[]>([])
-  const [currentResponse, setCurrentResponse] = useState<QueryResponse | null>(null)
-  const [isQuerying, setIsQuerying] = useState(false)
-  const [queryError, setQueryError] = useState<string | null>(null)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [sessionId, setSessionId] = useState<string>("")
 
   // Restore connection and history from localStorage on mount
   useEffect(() => {
@@ -33,14 +32,16 @@ export default function DataPilotApp() {
   const handleConnect = (conn: Connection) => {
     setConnection(conn)
     setShowConnectionModal(false)
+    setMessages([])
+    setSessionId(crypto.randomUUID())
     localStorage.setItem(STORAGE_KEY_CONNECTION, JSON.stringify(conn))
   }
 
   const handleDisconnect = () => {
     setConnection(null)
-    setCurrentResponse(null)
+    setMessages([])
+    setSessionId("")
     setQueryHistory([])
-    setQueryError(null)
     localStorage.removeItem(STORAGE_KEY_CONNECTION)
     localStorage.removeItem(STORAGE_KEY_HISTORY)
   }
@@ -48,20 +49,33 @@ export default function DataPilotApp() {
   const handleQuery = async (question: string) => {
     if (!connection) return
 
-    setIsQuerying(true)
-    setCurrentResponse(null)
-    setQueryError(null)
+    const msgId = crypto.randomUUID()
+    const newMsg: ChatMessage = {
+      id: msgId,
+      question,
+      response: null,
+      error: null,
+      isLoading: true,
+      timestamp: new Date().toISOString(),
+    }
+
+    setMessages((prev) => [...prev, newMsg])
 
     try {
       const response = await askQuestion({
         connection_id: connection.id,
         question,
+        session_id: sessionId || undefined,
       })
 
-      setCurrentResponse(response)
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId ? { ...m, response, isLoading: false } : m
+        )
+      )
 
       const newItem: QueryHistoryItem = {
-        id: crypto.randomUUID(),
+        id: msgId,
         question,
         timestamp: new Date().toISOString(),
         rowCount: response.total_rows,
@@ -75,9 +89,12 @@ export default function DataPilotApp() {
         return updated
       })
     } catch (err) {
-      setQueryError(err instanceof Error ? err.message : "Query failed")
-    } finally {
-      setIsQuerying(false)
+      const error = err instanceof Error ? err.message : "Query failed"
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId ? { ...m, error, isLoading: false } : m
+        )
+      )
     }
   }
 
@@ -104,9 +121,7 @@ export default function DataPilotApp() {
       <main className="flex-1 flex flex-col min-w-0">
         <ChatInterface
           connection={connection}
-          currentResponse={currentResponse}
-          isQuerying={isQuerying}
-          queryError={queryError}
+          messages={messages}
           onQuery={handleQuery}
           onConnect={() => setShowConnectionModal(true)}
         />

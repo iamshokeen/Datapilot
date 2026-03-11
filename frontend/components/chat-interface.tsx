@@ -9,17 +9,18 @@ import {
   Users,
   Home,
   Calendar,
+  User,
+  Bot,
+  RefreshCw,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { QueryProgress } from "@/components/query-progress"
 import { QueryResult } from "@/components/query-result"
-import type { Connection, QueryResponse } from "@/lib/types"
+import type { Connection, ChatMessage } from "@/lib/types"
 
 interface ChatInterfaceProps {
   connection: Connection | null
-  currentResponse: QueryResponse | null
-  isQuerying: boolean
-  queryError?: string | null
+  messages: ChatMessage[]
   onQuery: (question: string) => void
   onConnect: () => void
 }
@@ -49,21 +50,20 @@ const EXAMPLE_QUESTIONS = [
 
 export function ChatInterface({
   connection,
-  currentResponse,
-  isQuerying,
-  queryError,
+  messages,
   onQuery,
   onConnect,
 }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
-  const contentRef = useRef<HTMLDivElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
+  // Auto-scroll to bottom whenever messages change
   useEffect(() => {
-    if (currentResponse && contentRef.current) {
-      contentRef.current.scrollTo({ top: 0, behavior: "smooth" })
-    }
-  }, [currentResponse])
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  const isQuerying = messages.length > 0 && messages[messages.length - 1].isLoading
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -121,21 +121,10 @@ export function ChatInterface({
         </div>
       </header>
 
-      {/* Content Area */}
-      <div ref={contentRef} className="flex-1 overflow-y-auto">
-        {isQuerying ? (
-          <div className="flex items-center justify-center min-h-[400px] p-8">
-            <QueryProgress />
-          </div>
-        ) : queryError ? (
-          <div className="flex items-center justify-center min-h-[400px] p-8">
-            <div className="max-w-md text-center">
-              <p className="text-red-400 text-sm">{queryError}</p>
-            </div>
-          </div>
-        ) : currentResponse ? (
-          <QueryResult response={currentResponse} />
-        ) : (
+      {/* Chat Thread */}
+      <div className="flex-1 overflow-y-auto">
+        {messages.length === 0 ? (
+          /* Empty state — example questions */
           <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
             <div className="max-w-2xl w-full">
               <div className="text-center mb-10">
@@ -149,7 +138,6 @@ export function ChatInterface({
                   Ask questions about your bookings, revenue, guests, or properties
                 </p>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {EXAMPLE_QUESTIONS.map((item, index) => (
                   <button
@@ -173,6 +161,55 @@ export function ChatInterface({
               </div>
             </div>
           </div>
+        ) : (
+          /* Message thread */
+          <div className="flex flex-col gap-0">
+            {messages.map((msg) => (
+              <div key={msg.id} className="border-b border-border/40 last:border-b-0">
+                {/* User question */}
+                <div className="px-6 pt-6 pb-3 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground leading-relaxed">
+                      {msg.question}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formatTime(msg.timestamp)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* AI response */}
+                <div className="px-6 pb-6 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    {msg.isLoading ? (
+                      <RefreshCw className="w-4 h-4 text-primary animate-spin" />
+                    ) : (
+                      <Bot className="w-4 h-4 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {msg.isLoading ? (
+                      <div className="py-2">
+                        <QueryProgress />
+                      </div>
+                    ) : msg.error ? (
+                      <div className="bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
+                        <p className="text-sm text-destructive">{msg.error}</p>
+                      </div>
+                    ) : msg.response ? (
+                      <div className="-mx-3">
+                        <QueryResult response={msg.response} />
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div ref={bottomRef} />
+          </div>
         )}
       </div>
 
@@ -186,7 +223,11 @@ export function ChatInterface({
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask a question about your data..."
+              placeholder={
+                messages.length > 0
+                  ? "Ask a follow-up question..."
+                  : "Ask a question about your data..."
+              }
               disabled={isQuerying}
               className="flex-1 bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm py-2"
             />
@@ -200,10 +241,20 @@ export function ChatInterface({
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-3">
-            DataPilot will analyze your database and generate insights
+            {messages.length > 0
+              ? "You can ask follow-up questions about the data above"
+              : "DataPilot will analyze your database and generate insights"}
           </p>
         </form>
       </div>
     </div>
   )
+}
+
+function formatTime(timestamp: string): string {
+  try {
+    return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  } catch {
+    return ""
+  }
 }
