@@ -89,8 +89,11 @@ def _entities_compatible(e1: dict, e2: dict) -> bool:
 
 def find_similar(question: str, connection_id: str) -> Optional[dict]:
     """
-    Search query_history for a semantically similar verified query.
-    Returns dict with tier, cached_sql, similarity, history_id — or None.
+    Search query_history for a semantically similar verified or corrected query.
+    Returns dict with tier, cached_sql, similarity, history_id, correction_note — or None.
+
+    Eligibility: verified=TRUE (thumbs up) OR correction_note IS NOT NULL (thumbs down with note).
+    If correction_note present → always Tier 2 so sql_modifier can apply the fix.
     """
     try:
         embedding = _get_embedder().embed_one(question)
@@ -101,11 +104,11 @@ def find_similar(question: str, connection_id: str) -> Optional[dict]:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(
                     """
-                    SELECT id, question, generated_sql,
+                    SELECT id, question, generated_sql, correction_note,
                            1 - (question_embedding <=> %s::vector) AS similarity
                     FROM query_history
                     WHERE connection_id = %s
-                      AND verified = TRUE
+                      AND (verified = TRUE OR correction_note IS NOT NULL)
                       AND generated_sql IS NOT NULL
                       AND question_embedding IS NOT NULL
                     ORDER BY question_embedding <=> %s::vector
@@ -121,14 +124,27 @@ def find_similar(question: str, connection_id: str) -> Optional[dict]:
 
         best = dict(rows[0])
         sim = float(best["similarity"])
+        correction_note = best.get("correction_note")
 
-        logger.info("[ECHO] Best match sim=%.3f for: %s", sim, question[:60])
+        logger.info("[ECHO] Best match sim=%.3f correction=%s for: %s", sim, bool(correction_note), question[:60])
 
         if sim < TIER2_THRESHOLD:
             return None
 
         cached_entities = extract_entities(best["question"] or "")
         entities_match = _entities_compatible(new_entities, cached_entities)
+
+        # If there's a correction note, force Tier 2 regardless of similarity
+        if correction_note:
+            logger.info("[ECHO] Tier 2 forced (correction note present, sim=%.3f)", sim)
+            return {
+                "tier": 2,
+                "cached_sql": best["generated_sql"],
+                "similarity": sim,
+                "history_id": best["id"],
+                "cached_question": best["question"],
+                "correction_note": correction_note,
+            }
 
         if sim >= TIER1_THRESHOLD and entities_match:
             logger.info("[ECHO] Tier 1 hit (sim=%.3f) — exact recycle", sim)
@@ -138,6 +154,7 @@ def find_similar(question: str, connection_id: str) -> Optional[dict]:
                 "similarity": sim,
                 "history_id": best["id"],
                 "cached_question": best["question"],
+                "correction_note": None,
             }
         else:
             logger.info(
@@ -150,6 +167,7 @@ def find_similar(question: str, connection_id: str) -> Optional[dict]:
                 "similarity": sim,
                 "history_id": best["id"],
                 "cached_question": best["question"],
+                "correction_note": None,
             }
 
     except Exception as exc:

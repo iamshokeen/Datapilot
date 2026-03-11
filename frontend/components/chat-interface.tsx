@@ -12,6 +12,7 @@ import {
   User,
   Bot,
   RefreshCw,
+  Plus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { QueryProgress } from "@/components/query-progress"
@@ -24,6 +25,7 @@ interface ChatInterfaceProps {
   sessionId?: string
   onQuery: (question: string) => void
   onConnect: () => void
+  onNewThread: () => void
 }
 
 const EXAMPLE_QUESTIONS = [
@@ -55,6 +57,7 @@ export function ChatInterface({
   sessionId,
   onQuery,
   onConnect,
+  onNewThread,
 }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
@@ -117,9 +120,22 @@ export function ChatInterface({
           <Sparkles className="w-5 h-5 text-primary" />
           <span className="text-sm font-medium text-foreground">Ask anything about your data</span>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
-          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-xs font-medium text-success">{connection.alias}</span>
+        <div className="flex items-center gap-3">
+          {messages.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onNewThread}
+              className="flex items-center gap-1.5 text-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              New Thread
+            </Button>
+          )}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span className="text-xs font-medium text-success">{connection.alias}</span>
+          </div>
         </div>
       </header>
 
@@ -207,6 +223,7 @@ export function ChatInterface({
                           response={msg.response}
                           sessionId={sessionId}
                           turnNumber={messages.filter(m => m.response !== null).findIndex(m => m.id === msg.id)}
+                          question={msg.question}
                         />
                       </div>
                     ) : null}

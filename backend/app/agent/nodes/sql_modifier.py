@@ -42,12 +42,21 @@ def sql_modifier(state: AgentState) -> AgentState:
         logger.warning("[sql_modifier] No cached SQL — falling through to generator")
         return {**state, "echo_tier": 3}
 
-    logger.info("[sql_modifier] Modifying cached SQL for: %s", new_question[:60])
+    correction_note = state.get("echo_correction_note")
+    logger.info("[sql_modifier] Modifying cached SQL for: %s (correction=%s)", new_question[:60], bool(correction_note))
+
+    correction_block = ""
+    if correction_note:
+        correction_block = f"""
+IMPORTANT — A previous attempt at this question was marked incorrect by the user.
+User feedback: "{correction_note}"
+You MUST ensure the modified SQL addresses this issue.
+"""
 
     prompt = f"""Cached question: {cached_question}
 
 New question: {new_question}
-
+{correction_block}
 Cached SQL:
 {cached_sql}
 

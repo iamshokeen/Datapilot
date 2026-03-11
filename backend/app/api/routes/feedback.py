@@ -1,7 +1,7 @@
 """
 POST /agent/feedback — thumbs up/down on a query result.
 Thumbs up → verified=True → ECHO eligible + triggers LORE update.
-Thumbs down → verified=False → ECHO blacklisted.
+Thumbs down → saves correction_note so ECHO can learn from the failure next time.
 """
 import logging
 from typing import Optional
@@ -23,6 +23,7 @@ class FeedbackRequest(BaseModel):
     session_id: str = Field(..., description="Session ID of the conversation")
     turn_number: int = Field(..., description="Turn number within the session (0-indexed)")
     verdict: str = Field(..., pattern="^(up|down)$", description="'up' or 'down'")
+    correction_note: Optional[str] = Field(None, description="For thumbs down: what the user expected instead")
 
 
 class FeedbackResponse(BaseModel):
@@ -50,20 +51,37 @@ async def submit_feedback(request: FeedbackRequest):
         conn = _get_conn()
         with conn:
             with conn.cursor() as cur:
-                # Update query_history via conversation_turns join
-                cur.execute(
-                    """
-                    UPDATE query_history qh
-                    SET verified = %s, feedback = %s
-                    FROM conversation_turns ct
-                    WHERE ct.session_id = %s
-                      AND ct.turn_number = %s
-                      AND qh.session_id = ct.session_id
-                      AND qh.question = ct.question
-                    RETURNING qh.id, qh.question, qh.generated_sql
-                    """,
-                    (verified, request.verdict, request.session_id, request.turn_number),
-                )
+                if verified:
+                    # Thumbs up: mark as verified, clear any previous correction
+                    cur.execute(
+                        """
+                        UPDATE query_history qh
+                        SET verified = TRUE, feedback = 'up', correction_note = NULL
+                        FROM conversation_turns ct
+                        WHERE ct.session_id = %s
+                          AND ct.turn_number = %s
+                          AND qh.session_id = ct.session_id
+                          AND qh.question = ct.question
+                        RETURNING qh.id, qh.question, qh.generated_sql
+                        """,
+                        (request.session_id, request.turn_number),
+                    )
+                else:
+                    # Thumbs down: save correction note — keep verified=NULL (not blacklisted)
+                    # so ECHO can still find it and apply the correction via Tier 2
+                    cur.execute(
+                        """
+                        UPDATE query_history qh
+                        SET verified = NULL, feedback = 'down', correction_note = %s
+                        FROM conversation_turns ct
+                        WHERE ct.session_id = %s
+                          AND ct.turn_number = %s
+                          AND qh.session_id = ct.session_id
+                          AND qh.question = ct.question
+                        RETURNING qh.id, qh.question, qh.generated_sql
+                        """,
+                        (request.correction_note, request.session_id, request.turn_number),
+                    )
                 row = cur.fetchone()
         conn.close()
 
@@ -81,8 +99,9 @@ async def submit_feedback(request: FeedbackRequest):
                 logger.warning("[feedback] LORE update failed: %s", exc)
 
         logger.info(
-            "[feedback] session=%s turn=%d verdict=%s lore_updated=%s",
-            request.session_id, request.turn_number, request.verdict, lore_updated,
+            "[feedback] session=%s turn=%d verdict=%s correction=%s lore_updated=%s",
+            request.session_id, request.turn_number, request.verdict,
+            bool(request.correction_note), lore_updated,
         )
         return FeedbackResponse(ok=True, verified=verified, lore_updated=lore_updated)
 

@@ -21,7 +21,13 @@ def echo_lookup(state: AgentState) -> AgentState:
 
     if result is None:
         logger.info("[echo_lookup] No match — Tier 3 (full generation)")
-        return {**state, "echo_tier": 3, "echo_cached_sql": None, "echo_cached_question": None}
+        return {
+            **state,
+            "echo_tier": 3,
+            "echo_cached_sql": None,
+            "echo_cached_question": None,
+            "echo_correction_note": None,
+        }
 
     return {
         **state,
@@ -30,6 +36,7 @@ def echo_lookup(state: AgentState) -> AgentState:
         "echo_cached_question": result.get("cached_question"),
         "echo_similarity": result["similarity"],
         "echo_history_id": result["history_id"],
+        "echo_correction_note": result.get("correction_note"),
         # For Tier 1: pre-load the cached SQL directly
         "sql_query": result["cached_sql"] if result["tier"] == 1 else state.get("sql_query", ""),
         "execution_success": False,

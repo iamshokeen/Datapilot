@@ -26,6 +26,7 @@ class AgentState(TypedDict, total=False):
     echo_cached_question: Optional[str]  # the original cached question
     echo_similarity: Optional[float]  # cosine similarity score
     echo_history_id: Optional[int]    # query_history.id of the matched row
+    echo_correction_note: Optional[str]  # user-reported correction for previous failure
 
     # ── SQL Generator ──────────────────────────────────────────────────────
     sql_query: str

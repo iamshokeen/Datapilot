@@ -24,6 +24,7 @@ export async function submitFeedback(data: {
   session_id: string
   turn_number: number
   verdict: "up" | "down"
+  correction_note?: string
 }): Promise<{ ok: boolean; verified: boolean; lore_updated: boolean }> {
   const response = await fetch(`${API_BASE_URL}/agent/feedback`, {
     method: "POST",

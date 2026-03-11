@@ -107,6 +107,11 @@ export default function DataPilotApp() {
     localStorage.removeItem(STORAGE_KEY_HISTORY)
   }
 
+  const handleNewThread = () => {
+    setMessages([])
+    setSessionId(crypto.randomUUID())
+  }
+
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <AppSidebar
@@ -125,6 +130,7 @@ export default function DataPilotApp() {
           sessionId={sessionId}
           onQuery={handleQuery}
           onConnect={() => setShowConnectionModal(true)}
+          onNewThread={handleNewThread}
         />
       </main>
 
