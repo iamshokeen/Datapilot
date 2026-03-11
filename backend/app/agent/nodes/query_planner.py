@@ -11,10 +11,11 @@ import os
 import anthropic
 
 from app.agent.state import AgentState
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
 _SYSTEM = """You are a query planning assistant for a luxury villa rental analytics platform called Lohono Stays.
 

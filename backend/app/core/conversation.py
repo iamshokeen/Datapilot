@@ -3,6 +3,8 @@ DataPilot — Conversation History Service
 Provides sync helpers (psycopg2) for storing and retrieving multi-turn
 conversation context. Agent nodes are sync, so we use psycopg2 directly.
 """
+import datetime
+import decimal
 import json
 import logging
 from typing import Optional
@@ -13,6 +15,15 @@ import psycopg2.extras
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+def _json_default(obj):
+    """Fallback encoder for types psycopg2 returns that aren't JSON-native."""
+    if isinstance(obj, (datetime.date, datetime.datetime)):
+        return str(obj)
+    if isinstance(obj, decimal.Decimal):
+        return float(obj)
+    return str(obj)
+
 
 _MAX_DATA_ROWS = 1000
 _HISTORY_TURNS = 3  # how many previous turns to inject as context
@@ -106,7 +117,7 @@ def save_turn(
                         question,
                         narrative,
                         summary,
-                        json.dumps(capped_data) if capped_data else None,
+                        json.dumps(capped_data, default=_json_default) if capped_data else None,
                     ),
                 )
         conn.close()

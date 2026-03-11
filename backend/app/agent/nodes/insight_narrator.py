@@ -10,10 +10,11 @@ import os
 import anthropic
 
 from app.agent.state import AgentState
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
 _SYSTEM = """You are an expert data analyst and storyteller for Lohono Stays, a luxury villa rental company with 139+ properties across India.
 
@@ -98,10 +99,14 @@ def insight_narrator(state: AgentState) -> AgentState:
             }
         )
 
+    def _default(obj):
+        """Fallback JSON encoder for any remaining non-serializable types."""
+        return str(obj)
+
     prompt = f"""Original question: {original_q}
 
 Results:
-{json.dumps(results_summary, indent=2)}
+{json.dumps(results_summary, indent=2, default=_default)}
 
 Please write the narrative summary."""
 
@@ -116,7 +121,8 @@ Please write the narrative summary."""
         logger.info("[insight_narrator] Narrative generated (%d chars)", len(narrative))
         return {**state, "narrative": narrative}
     except Exception as exc:
-        logger.error("[insight_narrator] Failed: %s", exc)
+        import traceback
+        logger.error("[insight_narrator] Failed: %s\n%s", exc, traceback.format_exc())
         return {
             **state,
             "narrative": f"Data retrieved successfully ({total_rows} rows) but the narrative summary could not be generated. Please check the table below for results.",
