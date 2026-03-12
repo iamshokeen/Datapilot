@@ -64,6 +64,7 @@ def query_planner(state: AgentState) -> AgentState:
     if history_ctx:
         user_content = f"{history_ctx}\n\nCurrent question: {question}"
 
+    usage = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
     try:
         response = _client.messages.create(
             model="claude-sonnet-4-5",
@@ -71,6 +72,12 @@ def query_planner(state: AgentState) -> AgentState:
             system=[{"type": "text", "text": _SYSTEM, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": user_content}],
         )
+        usage = {
+            "input": getattr(response.usage, "input_tokens", 0) or 0,
+            "output": getattr(response.usage, "output_tokens", 0) or 0,
+            "cache_read": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
+            "cache_write": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
+        }
         raw = response.content[0].text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -96,6 +103,9 @@ def query_planner(state: AgentState) -> AgentState:
         reuse_query_result = last_data
         logger.info("[query_planner] Re-using %d rows from last turn", len(reuse_query_result))
 
+    token_tracker = dict(state.get("token_tracker") or {})
+    token_tracker["query_planner"] = usage
+
     return {
         **state,
         "sub_questions": sub_questions,
@@ -103,9 +113,9 @@ def query_planner(state: AgentState) -> AgentState:
         "all_results": [],
         "retry_count": 0,
         "requires_new_query": requires_new_query,
-        # Pre-load previous data so python_analyst can work on it immediately
         "query_result": reuse_query_result if not requires_new_query else state.get("query_result", []),
         "execution_success": True if not requires_new_query else False,
         "sql_query": "" if not requires_new_query else state.get("sql_query", ""),
         "sql_error": None,
+        "token_tracker": token_tracker,
     }

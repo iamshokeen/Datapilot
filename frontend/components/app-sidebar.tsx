@@ -11,7 +11,9 @@ import {
   Clock,
   Rows3,
   Timer,
+  BarChart3,
 } from "lucide-react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import type { Connection, QueryHistoryItem } from "@/lib/types"
 
@@ -154,8 +156,19 @@ export function AppSidebar({
         )}
       </div>
 
-      {/* Footer */}
+      {/* Admin Link */}
       <div className="px-4 py-3 border-t border-sidebar-border">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors w-full"
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span className="text-sm font-medium">Admin Dashboard</span>
+        </Link>
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-2 border-t border-sidebar-border">
         <p className="text-[10px] text-muted-foreground/60 text-center">
           Powered by AI
         </p>

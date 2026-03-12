@@ -69,8 +69,16 @@ Modify the SQL minimally to answer the new question."""
             system=[{"type": "text", "text": _SYSTEM, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": prompt}],
         )
+        node_usage = {
+            "input": getattr(response.usage, "input_tokens", 0) or 0,
+            "output": getattr(response.usage, "output_tokens", 0) or 0,
+            "cache_read": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
+            "cache_write": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
+        }
+        token_tracker = dict(state.get("token_tracker") or {})
+        token_tracker["sql_modifier"] = node_usage
+
         modified_sql = response.content[0].text.strip()
-        # Strip markdown fences if present
         if modified_sql.startswith("```"):
             lines = modified_sql.split("\n")
             modified_sql = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
@@ -81,6 +89,7 @@ Modify the SQL minimally to answer the new question."""
             "sql_query": modified_sql,
             "sql_error": None,
             "execution_success": False,
+            "token_tracker": token_tracker,
         }
     except Exception as exc:
         logger.error("[sql_modifier] Failed: %s", exc)

@@ -175,6 +175,42 @@ def find_similar(question: str, connection_id: str) -> Optional[dict]:
         return None
 
 
+def find_few_shot_examples(question: str, connection_id: str, limit: int = 3) -> list[dict]:
+    """
+    Return up to `limit` verified Q+SQL pairs for few-shot injection into SQL generation.
+    Uses a lower similarity threshold (0.50) than ECHO for wider topical coverage.
+    Returns: [{"id": int, "question": str, "generated_sql": str, "similarity": float}]
+    """
+    try:
+        embedding = _get_embedder().embed_one(question)
+        conn = _get_conn()
+        with conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """
+                    SELECT id, question, generated_sql,
+                           1 - (question_embedding <=> %s::vector) AS similarity
+                    FROM query_history
+                    WHERE connection_id = %s
+                      AND verified = TRUE
+                      AND generated_sql IS NOT NULL
+                      AND question_embedding IS NOT NULL
+                    ORDER BY question_embedding <=> %s::vector
+                    LIMIT %s
+                    """,
+                    (str(embedding), connection_id, str(embedding), limit),
+                )
+                rows = cur.fetchall()
+        conn.close()
+        # Filter out near-duplicate noise below 0.50 similarity
+        results = [dict(r) for r in rows if float(r["similarity"]) >= 0.50]
+        logger.info("[ECHO] Found %d few-shot examples for: %s", len(results), question[:60])
+        return results
+    except Exception as exc:
+        logger.warning("[ECHO] find_few_shot_examples failed: %s", exc)
+        return []
+
+
 def save_embedding(history_id: int, question: str, echo_tier: int) -> None:
     """Embed the question and save to query_history.question_embedding."""
     try:
@@ -200,8 +236,15 @@ def save_to_history(
     echo_tier: int,
     rows_returned: int,
     processing_time_ms: int,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    cache_read_tokens: int = 0,
+    cache_write_tokens: int = 0,
+    cost_usd: float = 0.0,
+    retry_count: int = 0,
+    few_shot_used: bool = False,
 ) -> Optional[int]:
-    """Insert a new query_history row with embedding. Returns the new row id."""
+    """Insert a new query_history row with embedding and token/cost data. Returns new row id."""
     try:
         embedding = _get_embedder().embed_one(question)
         conn = _get_conn()
@@ -212,19 +255,24 @@ def save_to_history(
                     INSERT INTO query_history
                         (connection_id, session_id, question, generated_sql,
                          was_successful, rows_returned, execution_time_ms,
-                         llm_model_used, question_embedding, echo_tier)
-                    VALUES (%s, %s, %s, %s, TRUE, %s, %s, %s, %s::vector, %s)
+                         llm_model_used, question_embedding, echo_tier,
+                         input_tokens, output_tokens, cache_read_tokens,
+                         cache_write_tokens, cost_usd, retry_count, few_shot_used)
+                    VALUES (%s, %s, %s, %s, TRUE, %s, %s, %s, %s::vector, %s,
+                            %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                     """,
                     (
                         connection_id, session_id, question, sql,
                         rows_returned, processing_time_ms,
                         "claude-sonnet-4-5", str(embedding), echo_tier,
+                        input_tokens, output_tokens, cache_read_tokens,
+                        cache_write_tokens, cost_usd, retry_count, few_shot_used,
                     ),
                 )
                 row_id = cur.fetchone()[0]
         conn.close()
-        logger.info("[ECHO] Saved to history id=%d tier=%d", row_id, echo_tier)
+        logger.info("[ECHO] Saved to history id=%d tier=%d cost=$%.5f", row_id, echo_tier, cost_usd)
         return row_id
     except Exception as exc:
         logger.warning("[ECHO] Failed to save history: %s", exc)

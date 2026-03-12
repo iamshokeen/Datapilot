@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from app.agent.graph.agent_graph import agent
 from app.core.conversation import get_history, save_turn
+from app.core.cost import aggregate_tokens, compute_cost_usd
 from app.core.echo import save_to_history
 
 logger = logging.getLogger(__name__)
@@ -54,6 +55,8 @@ class AgentAskResponse(BaseModel):
     requires_new_query: Optional[bool] = None
     echo_tier: Optional[int] = None
     echo_similarity: Optional[float] = None
+    cost_usd: Optional[float] = None
+    total_tokens: Optional[int] = None
 
 
 @router.post("/ask", response_model=AgentAskResponse, summary="Multi-step analytics agent with ECHO cache")
@@ -82,6 +85,9 @@ async def agent_ask(request: AgentAskRequest):
         "echo_cached_question": None,
         "echo_similarity": None,
         "echo_history_id": None,
+        "echo_correction_note": None,
+        "few_shot_example_ids": [],
+        "token_tracker": {},
         "execution_success": False,
         "sql_error": None,
         "query_result": [],
@@ -110,6 +116,22 @@ async def agent_ask(request: AgentAskRequest):
 
     echo_tier = final_state.get("echo_tier", 3)
 
+    # Compute token totals and cost
+    token_tracker = final_state.get("token_tracker") or {}
+    token_totals = aggregate_tokens(token_tracker)
+    cost_usd = compute_cost_usd(token_tracker)
+    total_tokens = sum(token_totals.values())
+    retry_count = final_state.get("retry_count", 0)
+    few_shot_ids = final_state.get("few_shot_example_ids") or []
+
+    logger.info(
+        "[/agent/ask] cost=$%.5f tokens=%d (in=%d out=%d cr=%d cw=%d) retries=%d few_shot=%d",
+        cost_usd, total_tokens,
+        token_totals["input"], token_totals["output"],
+        token_totals["cache_read"], token_totals["cache_write"],
+        retry_count, len(few_shot_ids),
+    )
+
     # Save to ECHO history (best-effort, non-blocking)
     if final.get("data") is not None:
         all_results = final_state.get("all_results", [])
@@ -127,6 +149,13 @@ async def agent_ask(request: AgentAskRequest):
                 echo_tier=echo_tier or 3,
                 rows_returned=final.get("total_rows", 0),
                 processing_time_ms=elapsed_ms,
+                input_tokens=token_totals["input"],
+                output_tokens=token_totals["output"],
+                cache_read_tokens=token_totals["cache_read"],
+                cache_write_tokens=token_totals["cache_write"],
+                cost_usd=cost_usd,
+                retry_count=retry_count,
+                few_shot_used=bool(few_shot_ids),
             )
 
     # Save conversation turn
@@ -176,6 +205,8 @@ async def agent_ask(request: AgentAskRequest):
         requires_new_query=final_state.get("requires_new_query", True),
         echo_tier=echo_tier,
         echo_similarity=final_state.get("echo_similarity"),
+        cost_usd=round(cost_usd, 6),
+        total_tokens=total_tokens,
     )
 
     logger.info("[/agent/ask] Done in %dms | tier=%s | rows=%d", elapsed_ms, echo_tier, response.total_rows)

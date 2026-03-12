@@ -407,31 +407,58 @@ class SQLGenerator:
         self.parser = SQLParser()
 
     def generate(self, question: str, schema_context: str) -> "SQLGenerationResult":
+        """Generate SQL without few-shot examples (backward-compatible)."""
+        return self.generate_with_examples(question, schema_context, few_shot_examples=[])
+
+    def generate_with_examples(
+        self,
+        question: str,
+        schema_context: str,
+        few_shot_examples: list[dict],
+    ) -> "SQLGenerationResult":
         """
-        Generates SQL for the given question using the provided schema context.
+        Generate SQL with optional few-shot examples injected into the user message.
+        Examples are injected into the user message (NOT the system prompt) to preserve
+        the 22K system-prompt cache.
 
         Args:
             question: The user's natural language question
             schema_context: Relevant table summaries from semantic search
-
-        Returns:
-            SQLGenerationResult with the generated SQL and metadata
+            few_shot_examples: List of {"question", "generated_sql"} dicts from query_history
         """
         system_prompt = SYSTEM_PROMPT.format(
             schema_context=schema_context,
             max_rows=self.max_rows,
         )
 
-        logger.info(f"Generating SQL for question: '{question[:100]}'")
-        raw_output = self.llm.complete(
+        user_message = question
+        if few_shot_examples:
+            examples_block = "\n\n".join(
+                f"Example {i + 1}:\nQ: {ex['question']}\nSQL:\n{ex['generated_sql']}"
+                for i, ex in enumerate(few_shot_examples)
+            )
+            user_message = (
+                f"## SIMILAR VERIFIED QUERIES (for reference — use as style/pattern guide)\n\n"
+                f"{examples_block}\n\n"
+                f"---\n\n"
+                f"Now answer this new question:\n{question}"
+            )
+            logger.info("Generating SQL with %d few-shot examples for: '%s'", len(few_shot_examples), question[:80])
+        else:
+            logger.info("Generating SQL for question: '%s'", question[:100])
+
+        raw_output, usage = self.llm.complete_with_usage(
             system_prompt=system_prompt,
-            user_message=question,
-            temperature=0.0,  # Deterministic — SQL generation needs consistency
-            max_tokens=8192,  # Complex queries with multiple CTEs need room
-            cache_system_prompt=True,  # Cache the 22K-char domain prompt (5 min TTL)
+            user_message=user_message,
+            temperature=0.0,
+            max_tokens=8192,
+            cache_system_prompt=True,
         )
 
-        return self._parse_output(raw_output, question)
+        result = self._parse_output(raw_output, question)
+        result.usage = usage
+        result.few_shot_count = len(few_shot_examples)
+        return result
 
     def _parse_output(self, raw_output: str, question: str) -> "SQLGenerationResult":
         """
@@ -526,7 +553,7 @@ class SQLGenerator:
 
 
 class SQLGenerationResult:
-    """Result of SQL generation. Immutable value object."""
+    """Result of SQL generation."""
 
     def __init__(
         self,
@@ -541,3 +568,5 @@ class SQLGenerationResult:
         self.raw_output = raw_output
         self.model = model
         self.validation_error = validation_error
+        self.usage: dict = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
+        self.few_shot_count: int = 0

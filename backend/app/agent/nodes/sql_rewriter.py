@@ -4,16 +4,16 @@ If SQL execution failed, sends the error + original SQL back to Claude
 to generate a corrected query. Max 2 retries (controlled in graph routing).
 """
 import logging
-import os
 import re
 
 import anthropic
 
 from app.agent.state import AgentState
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+_client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
 _SYSTEM = """You are an expert PostgreSQL query fixer for the Lohono Stays analytics platform.
 
@@ -96,19 +96,28 @@ Please provide a corrected SQL query."""
             system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": prompt}],
         )
+        node_usage = {
+            "input": getattr(response.usage, "input_tokens", 0) or 0,
+            "output": getattr(response.usage, "output_tokens", 0) or 0,
+            "cache_read": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
+            "cache_write": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
+        }
         fixed_sql = response.content[0].text.strip()
-        # Strip any accidental fencing
         fixed_sql = re.sub(r"^```[a-z]*\n?", "", fixed_sql, flags=re.IGNORECASE)
         fixed_sql = re.sub(r"\n?```$", "", fixed_sql)
         fixed_sql = fixed_sql.strip()
 
-        logger.info("[sql_rewriter] Fixed SQL: %s", fixed_sql[:200])
+        token_tracker = dict(state.get("token_tracker") or {})
+        token_tracker[f"sql_rewriter_{retry_count + 1}"] = node_usage
+
+        logger.info("[sql_rewriter] Fixed SQL ready")
         return {
             **state,
             "sql_query": fixed_sql,
             "sql_error": None,
             "retry_count": retry_count + 1,
             "execution_success": False,
+            "token_tracker": token_tracker,
         }
     except Exception as exc:
         logger.error("[sql_rewriter] Rewrite failed: %s", exc)

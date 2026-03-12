@@ -2,12 +2,30 @@
   "_meta": {
     "version": 1,
     "description": "LORE — Learned Operational Rules & Evidence. Auto-updated on thumbs-up. Not yet injected into pipeline.",
-    "last_updated": null,
-    "total_verified_queries": 0
+    "last_updated": "2026-03-11T12:51:52.433777",
+    "total_verified_queries": 2
   },
-  "verified_filters": {},
-  "metric_definitions": {},
-  "common_joins": {},
+  "verified_filters": {
+    "status": "booked, force_booked",
+    "source": "not in ('ho_app', 'ho_blockOI', 'promotion_calls', 'club_mahindra')",
+    "rental_opportunity_status": "not 'owner_blocked'",
+    "slug": "not in ('C0ED7C50', '4EEFA0F2', '6C0C0CB6', 'CB62A812', 'BB80EC53', 'r-goo-96edefac', 'BDFDA003', '1F556553', 'DB6E5D4C', 'C813A2C5')",
+    "confirmed_at": "between '2024-04-01' and '2025-03-31'",
+    "deleted_at": "IS NULL"
+  },
+  "metric_definitions": {
+    "bookings": "COUNT(DISTINCT rr.id)",
+    "gross_gmv": "ROUND(SUM((rr.breakdown->>'net_base_rate')::FLOAT * (rr.breakdown->>'currency_factor')::FLOAT)::NUMERIC)",
+    "total_revenue": "ROUND(SUM((rr.breakdown->>'net_base_rate')::FLOAT * (rr.breakdown->>'currency_factor')::FLOAT)::NUMERIC)"
+  },
+  "common_joins": {
+    "rental_reservations": "rental_opportunities → rental_reservations via rental_opportunity_id",
+    "rental_properties": "rental_reservations → rental_properties via rental_property_id",
+    "rental_locations": "rental_properties → rental_locations via location_id"
+  },
   "business_terms": {},
-  "observed_patterns": []
+  "observed_patterns": [
+    "Booking numbers are analyzed by state and filtered by specific statuses and sources.",
+    "Revenue is calculated and grouped by property location."
+  ]
 }

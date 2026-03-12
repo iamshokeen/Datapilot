@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import ask, connect, health
 from app.agent_router import router as agent_router
+from app.api.routes.admin import router as admin_router
 from app.api.routes.feedback import router as feedback_router
 from app.config import settings
 
@@ -39,6 +40,7 @@ app.include_router(connect.router, prefix="/connect", tags=["Connection"])
 app.include_router(ask.router, prefix="/ask", tags=["Query"])
 app.include_router(agent_router)
 app.include_router(feedback_router)
+app.include_router(admin_router)
 
 @app.on_event("startup")
 async def startup():

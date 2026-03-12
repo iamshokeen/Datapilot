@@ -117,9 +117,18 @@ Please write the narrative summary."""
             system=[{"type": "text", "text": _SYSTEM, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": prompt}],
         )
+        node_usage = {
+            "input": getattr(response.usage, "input_tokens", 0) or 0,
+            "output": getattr(response.usage, "output_tokens", 0) or 0,
+            "cache_read": getattr(response.usage, "cache_read_input_tokens", 0) or 0,
+            "cache_write": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
+        }
+        token_tracker = dict(state.get("token_tracker") or {})
+        token_tracker["insight_narrator"] = node_usage
+
         narrative = response.content[0].text.strip()
         logger.info("[insight_narrator] Narrative generated (%d chars)", len(narrative))
-        return {**state, "narrative": narrative}
+        return {**state, "narrative": narrative, "token_tracker": token_tracker}
     except Exception as exc:
         import traceback
         logger.error("[insight_narrator] Failed: %s\n%s", exc, traceback.format_exc())

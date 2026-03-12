@@ -27,6 +27,10 @@ class AgentState(TypedDict, total=False):
     echo_similarity: Optional[float]  # cosine similarity score
     echo_history_id: Optional[int]    # query_history.id of the matched row
     echo_correction_note: Optional[str]  # user-reported correction for previous failure
+    few_shot_example_ids: list[int]   # query_history IDs used as few-shot examples
+
+    # ── Token / cost tracking ──────────────────────────────────────────────
+    token_tracker: dict               # {node_name: {input, output, cache_read, cache_write}}
 
     # ── SQL Generator ──────────────────────────────────────────────────────
     sql_query: str
