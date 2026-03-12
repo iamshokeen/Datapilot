@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-03-12T18:47:36.543881",
+  "summary": {
+    "total": 2,
+    "execution_success": 0,
+    "execution_success_rate": 0.0,
+    "result_match": 0,
+    "result_match_rate": 0.0,
+    "avg_geval_score": null,
+    "avg_latency_ms": 20758
+  },
+  "by_difficulty": {
+    "easy": {
+      "total": 2,
+      "success": 0,
+      "match": 0
+    }
+  },
+  "by_category": {
+    "revenue": {
+      "total": 1,
+      "success": 0,
+      "match": 0
+    },
+    "bookings": {
+      "total": 1,
+      "success": 0,
+      "match": 0
+    }
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the total revenue from all confirmed bookings?",
+      "category": "revenue",
+      "difficulty": "easy",
+      "agent_success": false,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "column 'total_revenue' missing from agent result",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "gross_gmv": 4041325.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "total_revenue": "3565872"
+        }
+      ],
+      "narrative": "Lohono Stays has generated a total revenue of \u20b940.4 lakhs (approximately \u20b94.04 million) from all confirmed bookings in the analyzed period. This represents the gross GMV (Gross Merchandise Value) across the portfolio, reflecting strong demand for the company's luxury villa experiences. The single consolidated figure demonstrates consistent booking performance, though a deeper look at property-level contributions and seasonal patterns would reveal which villas are driving the majority of this revenue stream. This healthy GMV foundation positions Lohono well for continued growth across its 139+ property network.",
+      "error": "",
+      "latency_ms": 23570
+    },
+    {
+      "id": "q003",
+      "question": "How many bookings have been confirmed vs cancelled?",
+      "category": "bookings",
+      "difficulty": "easy",
+      "agent_success": false,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "column 'status' missing from agent result",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "booking_status": "Confirmed",
+          "booking_count": 49
+        },
+        {
+          "booking_status": "Cancelled",
+          "booking_count": 16
+        }
+      ],
+      "golden_rows": [
+        {
+          "status": "booked",
+          "count": 38
+        },
+        {
+          "status": "cancelled",
+          "count": 16
+        }
+      ],
+      "narrative": "Lohono Stays has maintained a strong booking confirmation rate, with 49 confirmed bookings significantly outpacing 16 cancellations across the portfolio. This translates to a healthy 75% confirmation rate, indicating strong customer commitment and effective booking processes. The 3:1 ratio of confirmed to cancelled bookings demonstrates solid operational performance, though the 16 cancellations represent an opportunity to investigate cancellation drivers and potentially recover revenue through improved retention strategies or more flexible rebooking policies.",
+      "error": "",
+      "latency_ms": 17945
+    }
+  ]
+}

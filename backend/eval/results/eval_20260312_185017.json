@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-03-12T18:50:17.680782",
+  "summary": {
+    "total": 3,
+    "execution_success": 3,
+    "execution_success_rate": 100.0,
+    "result_match": 1,
+    "result_match_rate": 33.3,
+    "avg_geval_score": null,
+    "avg_latency_ms": 21203
+  },
+  "by_difficulty": {
+    "easy": {
+      "total": 2,
+      "success": 2,
+      "match": 0
+    },
+    "medium": {
+      "total": 1,
+      "success": 1,
+      "match": 1
+    }
+  },
+  "by_category": {
+    "revenue": {
+      "total": 1,
+      "success": 1,
+      "match": 0
+    },
+    "bookings": {
+      "total": 2,
+      "success": 2,
+      "match": 1
+    }
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the total revenue from all confirmed bookings?",
+      "category": "revenue",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "column 'total_revenue' missing from agent result",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "gross_gmv": 4041325.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "total_revenue": "3565872"
+        }
+      ],
+      "narrative": "Lohono Stays has generated a total of \u20b940.41 lakhs (approximately \u20b94.04 million) in gross revenue from all confirmed bookings. This figure represents the aggregate value of successfully completed reservations across the company's portfolio of 139+ luxury villas throughout India. The revenue metric reflects strong booking conversion and demonstrates the financial performance of confirmed stays. This gross GMV (Gross Merchandise Value) serves as a key indicator of the company's transactional volume and market traction in the luxury villa rental segment.",
+      "error": "",
+      "latency_ms": 25508
+    },
+    {
+      "id": "q003",
+      "question": "How many bookings have been confirmed vs cancelled?",
+      "category": "bookings",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "column 'status' missing from agent result",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "booking_status": "Confirmed",
+          "booking_count": 49
+        },
+        {
+          "booking_status": "Cancelled",
+          "booking_count": 16
+        }
+      ],
+      "golden_rows": [
+        {
+          "status": "booked",
+          "count": 38
+        },
+        {
+          "status": "cancelled",
+          "count": 16
+        }
+      ],
+      "narrative": "Lohono Stays has maintained a strong booking performance with 49 confirmed bookings compared to just 16 cancellations, representing a healthy confirmation rate of approximately 75%. This 3:1 ratio of confirmed to cancelled bookings demonstrates solid customer commitment and effective booking conversion. The relatively low cancellation count of 16 bookings suggests that guests who reserve Lohono's luxury villas are highly likely to follow through with their stays, which is a positive indicator for revenue predictability and operational planning.",
+      "error": "",
+      "latency_ms": 19094
+    },
+    {
+      "id": "q004",
+      "question": "Which city has the most confirmed bookings?",
+      "category": "bookings",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "exact match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "city": "Alibaug",
+          "bookings": 9
+        }
+      ],
+      "golden_rows": [
+        {
+          "city": "Alibaug",
+          "bookings": 9
+        }
+      ],
+      "narrative": "Alibaug emerges as the clear leader in confirmed bookings across Lohono Stays' portfolio, securing 9 confirmed reservations. This coastal destination's dominance suggests strong guest preference for beach-proximate luxury accommodations, likely driven by its accessibility from Mumbai and appeal as a weekend getaway. The concentration of booking activity in a single city indicates that Alibaug properties are resonating particularly well with customers, potentially due to property quality, pricing strategy, or seasonal demand patterns. This insight presents an opportunity to replicate Alibaug's success factors in other coastal markets while continuing to capitalize on this location's momentum.",
+      "error": "",
+      "latency_ms": 19006
+    }
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "timestamp": "2026-03-12T18:53:13.800337",
+  "summary": {
+    "total": 5,
+    "execution_success": 5,
+    "execution_success_rate": 100.0,
+    "result_match": 4,
+    "result_match_rate": 80.0,
+    "avg_geval_score": null,
+    "avg_latency_ms": 23282
+  },
+  "by_difficulty": {
+    "easy": {
+      "total": 3,
+      "success": 3,
+      "match": 3
+    },
+    "medium": {
+      "total": 2,
+      "success": 2,
+      "match": 1
+    }
+  },
+  "by_category": {
+    "revenue": {
+      "total": 2,
+      "success": 2,
+      "match": 2
+    },
+    "bookings": {
+      "total": 2,
+      "success": 2,
+      "match": 1
+    },
+    "properties": {
+      "total": 1,
+      "success": 1,
+      "match": 1
+    }
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the total revenue from all confirmed bookings?",
+      "category": "revenue",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "total_revenue": 4041325.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "total_revenue": "3565872"
+        }
+      ],
+      "narrative": "Lohono Stays has generated **\u20b940.41 lakhs** (\u20b94,041,325) in total revenue from all confirmed bookings across its luxury villa portfolio. This figure represents the aggregate value of successfully secured reservations, reflecting strong demand for the company's premium properties throughout India. The confirmed booking revenue serves as a solid foundation for forecasting and demonstrates meaningful traction in the competitive luxury accommodation market, particularly considering the high-value nature of villa rentals compared to traditional hospitality options.",
+      "error": "",
+      "latency_ms": 24840
+    },
+    {
+      "id": "q003",
+      "question": "How many bookings have been confirmed vs cancelled?",
+      "category": "bookings",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "booking_status": "Confirmed",
+          "booking_count": 49
+        },
+        {
+          "booking_status": "Cancelled",
+          "booking_count": 16
+        }
+      ],
+      "golden_rows": [
+        {
+          "status": "booked",
+          "count": 38
+        },
+        {
+          "status": "cancelled",
+          "count": 16
+        }
+      ],
+      "narrative": "Lohono Stays has achieved a strong booking confirmation rate, with 49 confirmed bookings significantly outpacing just 16 cancellations across the portfolio. This represents a healthy 75% confirmation rate, indicating strong customer commitment and effective booking processes. The cancellation count of 16 bookings suggests relatively low customer churn, which is a positive indicator for operational planning and revenue stability. The 3:1 ratio of confirmed to cancelled bookings demonstrates that once guests commit to a Lohono property, they're highly likely to follow through with their stay.",
+      "error": "",
+      "latency_ms": 28028
+    },
+    {
+      "id": "q004",
+      "question": "Which city has the most confirmed bookings?",
+      "category": "bookings",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row count mismatch: expected 1, got 13",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "city": "Alibaug",
+          "confirmed_bookings": 9
+        },
+        {
+          "city": "Panaji",
+          "confirmed_bookings": 8
+        },
+        {
+          "city": "Lonavala",
+          "confirmed_bookings": 7
+        },
+        {
+          "city": "Madikeri",
+          "confirmed_bookings": 4
+        },
+        {
+          "city": "Jaipur",
+          "confirmed_bookings": 4
+        },
+        {
+          "city": "Mahabaleshwar",
+          "confirmed_bookings": 4
+        },
+        {
+          "city": "Coonoor",
+          "confirmed_bookings": 3
+        },
+        {
+          "city": "Shimla",
+          "confirmed_bookings": 3
+        },
+        {
+          "city": "Karjat",
+          "confirmed_bookings": 2
+        },
+        {
+          "city": "Rishikesh",
+          "confirmed_bookings": 2
+        },
+        {
+          "city": "Mussoorie",
+          "confirmed_bookings": 1
+        },
+        {
+          "city": "Ramnagar",
+          "confirmed_bookings": 1
+        },
+        {
+          "city": "Kasauli",
+          "confirmed_bookings": 1
+        }
+      ],
+      "golden_rows": [
+        {
+          "city": "Alibaug",
+          "bookings": 9
+        }
+      ],
+      "narrative": "Alibaug emerges as Lohono Stays' booking powerhouse with 9 confirmed reservations, outpacing all other destinations across our portfolio. The coastal Maharashtra city leads by a notable margin, followed by Panaji with 8 bookings and Lonavala with 7, suggesting strong demand for properties within easy reach of Mumbai. What's particularly interesting is the steep drop-off beyond the top three \u2014 most cities like Madikeri, Jaipur, and Mahabaleshwar cluster around just 3-4 confirmed bookings, while hill stations such as Mussoorie, Ramnagar, and Kasauli registered only single bookings each. This concentration of demand indicates that proximity to major metros and established leisure destinations drives confirmation rates, with Alibaug's beach villas clearly resonating most strongly with our guests.",
+      "error": "",
+      "latency_ms": 19651
+    },
+    {
+      "id": "q007",
+      "question": "Which property has the highest number of confirmed bookings?",
+      "category": "properties",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "property_name": "The Bungalow Alibaug",
+          "confirmed_bookings": 5
+        }
+      ],
+      "golden_rows": [
+        {
+          "name": "The Bungalow Alibaug",
+          "bookings": 5
+        }
+      ],
+      "narrative": "The Bungalow Alibaug emerges as the clear leader in confirmed bookings across Lohono Stays' portfolio, securing 5 confirmed reservations. This property stands alone at the top of the booking performance chart, demonstrating strong guest appeal and market demand in the Alibaug region. While the absolute number suggests we may be looking at a recent time period or a subset of data, The Bungalow Alibaug's position as the highest-performing property indicates it has successfully captured guest interest and converted inquiries into confirmed stays. This makes it a valuable benchmark for understanding what drives booking conversion across the luxury villa segment.",
+      "error": "",
+      "latency_ms": 19925
+    },
+    {
+      "id": "q011",
+      "question": "What is the average booking value overall?",
+      "category": "revenue",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "avg_booking_value": 82476.02
+        }
+      ],
+      "golden_rows": [
+        {
+          "avg_booking_value": "93839"
+        }
+      ],
+      "narrative": "Across all bookings at Lohono Stays, the average booking value stands at \u20b982,476. This figure represents a strong mid-to-premium price point, reflecting the company's positioning in the luxury villa rental market. The metric suggests that guests are typically booking multi-night stays at premium properties, which aligns well with Lohono's portfolio of 139+ luxury villas across India. This healthy average booking value indicates robust demand for high-end vacation experiences and demonstrates the company's ability to command premium rates in the competitive hospitality landscape.",
+      "error": "",
+      "latency_ms": 23966
+    }
+  ]
+}

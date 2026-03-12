@@ -1,0 +1,222 @@
+[
+  {
+    "id": "q001",
+    "category": "revenue",
+    "difficulty": "easy",
+    "question": "What is the total revenue from all confirmed bookings?",
+    "golden_sql": "SELECT ROUND(SUM(amount)::NUMERIC, 0) AS total_revenue FROM rental_reservations WHERE status = 'booked'",
+    "expected_result": [{"total_revenue": 3565872}],
+    "check_columns": ["total_revenue"],
+    "tolerance_pct": 1.0
+  },
+  {
+    "id": "q002",
+    "category": "revenue",
+    "difficulty": "medium",
+    "question": "What is the total revenue by state for confirmed bookings? Show top 5 states.",
+    "golden_sql": "SELECT rl.state, ROUND(SUM(rr.amount)::NUMERIC, 0) AS revenue FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id JOIN rental_locations rl ON rp.location_id = rl.id WHERE rr.status = 'booked' GROUP BY rl.state ORDER BY revenue DESC LIMIT 5",
+    "expected_result": [
+      {"state": "Maharashtra", "revenue": 1578309},
+      {"state": "Goa", "revenue": 909485},
+      {"state": "Rajasthan", "revenue": 325680},
+      {"state": "Himachal Pradesh", "revenue": 298393},
+      {"state": "Tamil Nadu", "revenue": 230248}
+    ],
+    "check_columns": ["state", "revenue"],
+    "tolerance_pct": 1.0
+  },
+  {
+    "id": "q003",
+    "category": "bookings",
+    "difficulty": "easy",
+    "question": "How many bookings have been confirmed vs cancelled?",
+    "golden_sql": "SELECT status, COUNT(*) AS count FROM rental_reservations WHERE status IN ('booked', 'cancelled') GROUP BY status ORDER BY status",
+    "expected_result": [
+      {"status": "booked", "count": 38},
+      {"status": "cancelled", "count": 16}
+    ],
+    "check_columns": ["status", "count"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q004",
+    "category": "bookings",
+    "difficulty": "medium",
+    "question": "Which city has the most confirmed bookings?",
+    "golden_sql": "SELECT rl.city, COUNT(rr.id) AS bookings FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id JOIN rental_locations rl ON rp.location_id = rl.id WHERE rr.status = 'booked' GROUP BY rl.city ORDER BY bookings DESC",
+    "expected_result": null,
+    "check_columns": ["city", "bookings"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q005",
+    "category": "bookings",
+    "difficulty": "medium",
+    "question": "Show me the top 5 cities by number of confirmed bookings.",
+    "golden_sql": "SELECT rl.city, COUNT(rr.id) AS bookings FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id JOIN rental_locations rl ON rp.location_id = rl.id WHERE rr.status = 'booked' GROUP BY rl.city ORDER BY bookings DESC LIMIT 5",
+    "expected_result": [
+      {"city": "Alibaug", "bookings": 9},
+      {"city": "Lonavala", "bookings": 6},
+      {"city": "Panaji", "bookings": 5},
+      {"city": "Mahabaleshwar", "bookings": 4},
+      {"city": "Jaipur", "bookings": 3}
+    ],
+    "check_columns": ["city", "bookings"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q006",
+    "category": "revenue",
+    "difficulty": "medium",
+    "question": "What is the year-wise total revenue and number of bookings?",
+    "golden_sql": "SELECT EXTRACT(YEAR FROM check_in)::INT AS year, COUNT(*) AS bookings, ROUND(SUM(amount)::NUMERIC, 0) AS revenue FROM rental_reservations WHERE status = 'booked' GROUP BY year ORDER BY year",
+    "expected_result": [
+      {"year": 2023, "bookings": 9, "revenue": 762811},
+      {"year": 2024, "bookings": 10, "revenue": 1064537},
+      {"year": 2025, "bookings": 11, "revenue": 917421},
+      {"year": 2026, "bookings": 8, "revenue": 821103}
+    ],
+    "check_columns": ["year", "bookings", "revenue"],
+    "tolerance_pct": 1.0
+  },
+  {
+    "id": "q007",
+    "category": "properties",
+    "difficulty": "easy",
+    "question": "Which property has the highest number of confirmed bookings?",
+    "golden_sql": "SELECT rp.name, COUNT(rr.id) AS bookings FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id WHERE rr.status = 'booked' GROUP BY rp.name ORDER BY bookings DESC LIMIT 1",
+    "expected_result": [{"name": "The Bungalow Alibaug", "bookings": 5}],
+    "check_columns": ["name", "bookings"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q008",
+    "category": "properties",
+    "difficulty": "medium",
+    "question": "What is the average booking value per property? Show top 5.",
+    "golden_sql": "SELECT rp.name, ROUND(AVG(rr.amount)::NUMERIC, 0) AS avg_value FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id WHERE rr.status = 'booked' GROUP BY rp.name ORDER BY avg_value DESC LIMIT 5",
+    "expected_result": null,
+    "check_columns": ["name", "avg_value"],
+    "tolerance_pct": 2.0
+  },
+  {
+    "id": "q009",
+    "category": "cancellations",
+    "difficulty": "easy",
+    "question": "What is the cancellation rate as a percentage of total bookings?",
+    "golden_sql": "SELECT ROUND(100.0 * SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0)::NUMERIC, 1) AS cancellation_rate_pct FROM rental_reservations WHERE status IN ('booked', 'cancelled')",
+    "expected_result": [{"cancellation_rate_pct": 29.6}],
+    "check_columns": ["cancellation_rate_pct"],
+    "tolerance_pct": 2.0
+  },
+  {
+    "id": "q010",
+    "category": "bookings",
+    "difficulty": "hard",
+    "question": "What is the month-over-month trend in bookings for 2024?",
+    "golden_sql": "SELECT EXTRACT(MONTH FROM check_in)::INT AS month, TO_CHAR(check_in, 'Month') AS month_name, COUNT(*) AS bookings FROM rental_reservations WHERE status = 'booked' AND EXTRACT(YEAR FROM check_in) = 2024 GROUP BY month, month_name ORDER BY month",
+    "expected_result": null,
+    "check_columns": ["month", "bookings"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q011",
+    "category": "revenue",
+    "difficulty": "medium",
+    "question": "What is the average booking value overall?",
+    "golden_sql": "SELECT ROUND(AVG(amount)::NUMERIC, 0) AS avg_booking_value FROM rental_reservations WHERE status = 'booked'",
+    "expected_result": [{"avg_booking_value": 93839}],
+    "check_columns": ["avg_booking_value"],
+    "tolerance_pct": 1.0
+  },
+  {
+    "id": "q012",
+    "category": "properties",
+    "difficulty": "easy",
+    "question": "How many active properties does Lohono have?",
+    "golden_sql": "SELECT COUNT(*) AS active_properties FROM rental_properties WHERE active = TRUE AND deleted_at IS NULL",
+    "expected_result": null,
+    "check_columns": ["active_properties"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q013",
+    "category": "revenue",
+    "difficulty": "hard",
+    "question": "Compare total revenue in FY 2025 (April 2024 to March 2025) vs FY 2024 (April 2023 to March 2024).",
+    "golden_sql": "SELECT CASE WHEN check_in >= '2024-04-01' AND check_in < '2025-04-01' THEN 'FY2025' WHEN check_in >= '2023-04-01' AND check_in < '2024-04-01' THEN 'FY2024' END AS fiscal_year, ROUND(SUM(amount)::NUMERIC, 0) AS revenue, COUNT(*) AS bookings FROM rental_reservations WHERE status = 'booked' AND check_in >= '2023-04-01' AND check_in < '2025-04-01' GROUP BY fiscal_year ORDER BY fiscal_year",
+    "expected_result": null,
+    "check_columns": ["fiscal_year", "revenue"],
+    "tolerance_pct": 1.0
+  },
+  {
+    "id": "q014",
+    "category": "bookings",
+    "difficulty": "medium",
+    "question": "What is the average length of stay for confirmed bookings?",
+    "golden_sql": "SELECT ROUND(AVG(check_out - check_in)::NUMERIC, 1) AS avg_stay_days FROM rental_reservations WHERE status = 'booked'",
+    "expected_result": null,
+    "check_columns": ["avg_stay_days"],
+    "tolerance_pct": 2.0
+  },
+  {
+    "id": "q015",
+    "category": "cancellations",
+    "difficulty": "medium",
+    "question": "Which state has the highest number of cancellations?",
+    "golden_sql": "SELECT rl.state, COUNT(rr.id) AS cancellations FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id JOIN rental_locations rl ON rp.location_id = rl.id WHERE rr.status = 'cancelled' GROUP BY rl.state ORDER BY cancellations DESC LIMIT 1",
+    "expected_result": null,
+    "check_columns": ["state", "cancellations"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q016",
+    "category": "revenue",
+    "difficulty": "hard",
+    "question": "What percentage of total revenue comes from Maharashtra?",
+    "golden_sql": "SELECT ROUND((100.0 * SUM(CASE WHEN rl.state = 'Maharashtra' THEN rr.amount ELSE 0 END) / NULLIF(SUM(rr.amount), 0))::NUMERIC, 1) AS maharashtra_pct FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id JOIN rental_locations rl ON rp.location_id = rl.id WHERE rr.status = 'booked'",
+    "expected_result": null,
+    "check_columns": ["maharashtra_pct"],
+    "tolerance_pct": 2.0
+  },
+  {
+    "id": "q017",
+    "category": "bookings",
+    "difficulty": "easy",
+    "question": "How many bookings were made in 2025?",
+    "golden_sql": "SELECT COUNT(*) AS bookings_2025 FROM rental_reservations WHERE status = 'booked' AND EXTRACT(YEAR FROM check_in) = 2025",
+    "expected_result": [{"bookings_2025": 11}],
+    "check_columns": ["bookings_2025"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q018",
+    "category": "properties",
+    "difficulty": "medium",
+    "question": "Which properties have never had a confirmed booking?",
+    "golden_sql": "SELECT rp.name FROM rental_properties rp WHERE rp.deleted_at IS NULL AND rp.id NOT IN (SELECT DISTINCT rental_property_id FROM rental_reservations WHERE status = 'booked') ORDER BY rp.name",
+    "expected_result": null,
+    "check_columns": ["name"],
+    "tolerance_pct": 0.0
+  },
+  {
+    "id": "q019",
+    "category": "revenue",
+    "difficulty": "medium",
+    "question": "What is the total revenue from Goa properties?",
+    "golden_sql": "SELECT ROUND(SUM(rr.amount)::NUMERIC, 0) AS goa_revenue FROM rental_reservations rr JOIN rental_properties rp ON rr.rental_property_id = rp.id JOIN rental_locations rl ON rp.location_id = rl.id WHERE rr.status = 'booked' AND rl.state = 'Goa'",
+    "expected_result": [{"goa_revenue": 909485}],
+    "check_columns": ["goa_revenue"],
+    "tolerance_pct": 1.0
+  },
+  {
+    "id": "q020",
+    "category": "bookings",
+    "difficulty": "hard",
+    "question": "What is the booking conversion rate — confirmed bookings as a percentage of total enquiries?",
+    "golden_sql": "SELECT COUNT(DISTINCT ro.id) AS total_enquiries, COUNT(DISTINCT rr.id) AS confirmed_bookings, ROUND(100.0 * COUNT(DISTINCT rr.id) / NULLIF(COUNT(DISTINCT ro.id), 0)::NUMERIC, 1) AS conversion_rate_pct FROM rental_opportunities ro LEFT JOIN rental_reservations rr ON rr.rental_opportunity_id = ro.id AND rr.status = 'booked'",
+    "expected_result": null,
+    "check_columns": ["conversion_rate_pct"],
+    "tolerance_pct": 2.0
+  }
+]

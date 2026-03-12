@@ -1,0 +1,841 @@
+{
+  "timestamp": "2026-03-12T19:02:04.844034",
+  "summary": {
+    "total": 20,
+    "execution_success": 19,
+    "execution_success_rate": 95.0,
+    "result_match": 10,
+    "result_match_rate": 50.0,
+    "avg_geval_score": null,
+    "avg_latency_ms": 23633
+  },
+  "by_difficulty": {
+    "easy": {
+      "total": 6,
+      "success": 6,
+      "match": 4
+    },
+    "medium": {
+      "total": 10,
+      "success": 10,
+      "match": 4
+    },
+    "hard": {
+      "total": 4,
+      "success": 3,
+      "match": 2
+    }
+  },
+  "by_category": {
+    "revenue": {
+      "total": 7,
+      "success": 6,
+      "match": 3
+    },
+    "bookings": {
+      "total": 7,
+      "success": 7,
+      "match": 3
+    },
+    "properties": {
+      "total": 4,
+      "success": 4,
+      "match": 3
+    },
+    "cancellations": {
+      "total": 2,
+      "success": 2,
+      "match": 1
+    }
+  },
+  "results": [
+    {
+      "id": "q001",
+      "question": "What is the total revenue from all confirmed bookings?",
+      "category": "revenue",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row 0, numeric[0]: expected 3565872.0, got 49.0 (>50% diff)",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "total_bookings": 49,
+          "total_gross_gmv": 4041325.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "total_revenue": "3565872"
+        }
+      ],
+      "narrative": "Lohono Stays generated **\u20b940.41 lakhs in total revenue** from 49 confirmed bookings across the portfolio. This represents a healthy average booking value of approximately \u20b982,500 per confirmed reservation, indicating strong demand for the company's luxury villa offerings. With 139+ properties available, the conversion rate suggests focused occupancy across select high-performing villas rather than thin distribution across the entire inventory. The consistent revenue stream from nearly 50 confirmed bookings demonstrates solid booking momentum and validates the premium positioning of Lohono's curated villa collection.",
+      "error": "",
+      "latency_ms": 24378
+    },
+    {
+      "id": "q002",
+      "question": "What is the total revenue by state for confirmed bookings? Show top 5 states.",
+      "category": "revenue",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row 0, numeric[0]: expected 1578309.0, got 22.0 (>50% diff)",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "state": "Maharashtra",
+          "bookings": 22,
+          "gross_gmv": 1484550.0
+        },
+        {
+          "state": "Goa",
+          "bookings": 8,
+          "gross_gmv": 1114000.0
+        },
+        {
+          "state": "Rajasthan",
+          "bookings": 4,
+          "gross_gmv": 428000.0
+        },
+        {
+          "state": "Himachal Pradesh",
+          "bookings": 4,
+          "gross_gmv": 321275.0
+        },
+        {
+          "state": "Karnataka",
+          "bookings": 4,
+          "gross_gmv": 262250.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "state": "Maharashtra",
+          "revenue": "1578309"
+        },
+        {
+          "state": "Goa",
+          "revenue": "909485"
+        },
+        {
+          "state": "Rajasthan",
+          "revenue": "325680"
+        },
+        {
+          "state": "Himachal Pradesh",
+          "revenue": "298393"
+        },
+        {
+          "state": "Tamil Nadu",
+          "revenue": "230248"
+        }
+      ],
+      "narrative": "Maharashtra dominates Lohono's confirmed booking revenue landscape, generating \u20b914.85 lakhs from 22 bookings\u2014more than double the second-place state and representing over 40% of the top 5 states' combined revenue. Goa follows with \u20b911.14 lakhs across 8 bookings, demonstrating strong per-booking value that rivals Maharashtra's efficiency. The remaining three states\u2014Rajasthan (\u20b94.28 lakhs), Himachal Pradesh (\u20b93.21 lakhs), and Karnataka (\u20b92.62 lakhs)\u2014each contributed exactly 4 confirmed bookings, revealing a relatively even distribution of guest interest across these diverse destinations. What's particularly striking is the significant revenue gap between the top two performers and the rest, suggesting that Maharashtra and Goa properties are either commanding premium rates or attracting longer stays. This concentration indicates substantial growth opportunities in the underperforming states, where booking volumes remain modest despite their appeal as luxury travel destinations.",
+      "error": "",
+      "latency_ms": 26735
+    },
+    {
+      "id": "q003",
+      "question": "How many bookings have been confirmed vs cancelled?",
+      "category": "bookings",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "booking_status": "Confirmed",
+          "booking_count": 49
+        },
+        {
+          "booking_status": "Cancelled",
+          "booking_count": 16
+        }
+      ],
+      "golden_rows": [
+        {
+          "status": "booked",
+          "count": 38
+        },
+        {
+          "status": "cancelled",
+          "count": 16
+        }
+      ],
+      "narrative": "Lohono Stays has maintained a strong booking confirmation rate, with 49 confirmed bookings significantly outpacing 16 cancellations across the portfolio. This translates to a healthy 75% confirmation rate, suggesting robust demand and customer commitment to their luxury villa experiences. The 3:1 ratio of confirmed to cancelled bookings indicates effective booking management and minimal revenue leakage, with only about one in four bookings not converting to actual stays. This performance metric reflects positively on both the appeal of Lohono's properties and the effectiveness of their reservation processes in securing guest commitments.",
+      "error": "",
+      "latency_ms": 23704
+    },
+    {
+      "id": "q004",
+      "question": "Which city has the most confirmed bookings?",
+      "category": "bookings",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row count: golden=12, agent=1",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "city": "Alibaug",
+          "confirmed_bookings": 9
+        }
+      ],
+      "golden_rows": [
+        {
+          "city": "Alibaug",
+          "bookings": 9
+        },
+        {
+          "city": "Lonavala",
+          "bookings": 6
+        },
+        {
+          "city": "Panaji",
+          "bookings": 5
+        },
+        {
+          "city": "Mahabaleshwar",
+          "bookings": 4
+        },
+        {
+          "city": "Jaipur",
+          "bookings": 3
+        },
+        {
+          "city": "Coonoor",
+          "bookings": 3
+        },
+        {
+          "city": "Shimla",
+          "bookings": 2
+        },
+        {
+          "city": "Madikeri",
+          "bookings": 2
+        },
+        {
+          "city": "Rishikesh",
+          "bookings": 1
+        },
+        {
+          "city": "Kasauli",
+          "bookings": 1
+        },
+        {
+          "city": "Mussoorie",
+          "bookings": 1
+        },
+        {
+          "city": "Karjat",
+          "bookings": 1
+        }
+      ],
+      "narrative": "Alibaug emerges as Lohono Stays' top-performing city with 9 confirmed bookings, leading all other markets in customer commitment. This coastal destination's dominance suggests strong demand for its beachside luxury villa experiences, making it a clear revenue anchor in the portfolio. The data indicates Alibaug has successfully converted guest interest into confirmed reservations, reflecting both the appeal of its properties and effective booking conversion strategies. For Lohono's operations team, this concentration of confirmed bookings in a single city presents both an opportunity to maximize occupancy rates and a reminder to diversify marketing efforts across other promising locations to reduce market concentration risk.",
+      "error": "",
+      "latency_ms": 21073
+    },
+    {
+      "id": "q005",
+      "question": "Show me the top 5 cities by number of confirmed bookings.",
+      "category": "bookings",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row count mismatch: expected 5, got 1",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "city": "Alibaug",
+          "confirmed_bookings": 9
+        }
+      ],
+      "golden_rows": [
+        {
+          "city": "Alibaug",
+          "bookings": 9
+        },
+        {
+          "city": "Lonavala",
+          "bookings": 6
+        },
+        {
+          "city": "Panaji",
+          "bookings": 5
+        },
+        {
+          "city": "Mahabaleshwar",
+          "bookings": 4
+        },
+        {
+          "city": "Jaipur",
+          "bookings": 3
+        }
+      ],
+      "narrative": "Based on the booking data analysis, Alibaug emerges as the sole city with confirmed bookings in the current dataset, recording 9 confirmed reservations. This single-city result suggests either a focused data snapshot or that Alibaug properties are significantly outperforming other locations during this period. The coastal destination's exclusive presence in the confirmed bookings data highlights its strong appeal among Lohono Stays' luxury travelers, likely driven by its proximity to Mumbai and reputation as a premium weekend getaway. To provide a comprehensive top-5 ranking, additional data from other cities in Lohono's portfolio would be needed to show the full competitive landscape across all 139+ properties.",
+      "error": "",
+      "latency_ms": 10489
+    },
+    {
+      "id": "q006",
+      "question": "What is the year-wise total revenue and number of bookings?",
+      "category": "revenue",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row 0, numeric[2]: expected 2023.0, got 12.0 (>50% diff)",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "fiscal_year": "FY26",
+          "bookings": 12,
+          "gross_gmv": 957225.0
+        },
+        {
+          "fiscal_year": "FY25",
+          "bookings": 15,
+          "gross_gmv": 1327350.0
+        },
+        {
+          "fiscal_year": "FY24",
+          "bookings": 16,
+          "gross_gmv": 1258125.0
+        },
+        {
+          "fiscal_year": "FY23",
+          "bookings": 6,
+          "gross_gmv": 498625.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "year": 2023,
+          "bookings": 9,
+          "revenue": "762811"
+        },
+        {
+          "year": 2024,
+          "bookings": 10,
+          "revenue": "1064537"
+        },
+        {
+          "year": 2025,
+          "bookings": 11,
+          "revenue": "917421"
+        },
+        {
+          "year": 2026,
+          "bookings": 8,
+          "revenue": "821103"
+        }
+      ],
+      "narrative": "Lohono Stays has demonstrated strong growth momentum over the past four fiscal years, with total bookings surging from just 6 in FY23 to a peak of 16 in FY24, representing a remarkable 167% year-over-year increase. Revenue followed a similar trajectory, climbing from \u20b9498,625 in FY23 to \u20b91.26 million in FY24, before reaching \u20b91.33 million in FY25\u2014our highest-grossing year to date. While FY25 saw a slight dip in bookings to 15, the revenue actually increased, suggesting guests are opting for longer stays or premium properties. The current fiscal year (FY26) shows 12 bookings and \u20b9957,225 in revenue thus far, tracking well given we're likely mid-year. Overall, the business has more than doubled its booking volume and nearly tripled its gross revenue since FY23, signaling robust market demand for our luxury villa portfolio.",
+      "error": "",
+      "latency_ms": 42447
+    },
+    {
+      "id": "q007",
+      "question": "Which property has the highest number of confirmed bookings?",
+      "category": "properties",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "property_name": "The Bungalow Alibaug",
+          "confirmed_bookings": 5
+        }
+      ],
+      "golden_rows": [
+        {
+          "name": "The Bungalow Alibaug",
+          "bookings": 5
+        }
+      ],
+      "narrative": "The Bungalow Alibaug leads the portfolio with 5 confirmed bookings, emerging as the top performer in terms of booking volume. This property stands out as the single highest-demand villa across Lohono's 139+ property network, suggesting strong market appeal in the Alibaug destination. The consistent booking count indicates stable guest interest, making The Bungalow Alibaug a cornerstone asset for revenue generation. Given that this property alone secured the top position, it warrants attention for understanding what drives its booking success\u2014whether location, amenities, pricing strategy, or seasonal factors\u2014insights that could be replicated across other properties in the portfolio.",
+      "error": "",
+      "latency_ms": 19466
+    },
+    {
+      "id": "q008",
+      "question": "What is the average booking value per property? Show top 5.",
+      "category": "properties",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "row count: golden=5, agent=5",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "property_name": "The Grand Villa Goa",
+          "location": "Goa",
+          "total_bookings": 3,
+          "avg_booking_value": 202500.0
+        },
+        {
+          "property_name": "Beachfront Paradise Goa",
+          "location": "Goa",
+          "total_bookings": 2,
+          "avg_booking_value": 137750.0
+        },
+        {
+          "property_name": "Royal Haveli Jaipur",
+          "location": "Jaipur",
+          "total_bookings": 4,
+          "avg_booking_value": 107000.0
+        },
+        {
+          "property_name": "Forest Lodge Jim Corbett",
+          "location": "Jim Corbett",
+          "total_bookings": 1,
+          "avg_booking_value": 95000.0
+        },
+        {
+          "property_name": "Seaview Estate Alibaug",
+          "location": "Alibaug",
+          "total_bookings": 4,
+          "avg_booking_value": 92312.5
+        }
+      ],
+      "golden_rows": [
+        {
+          "name": "The Grand Villa Goa",
+          "avg_value": "232313"
+        },
+        {
+          "name": "Beachfront Paradise Goa",
+          "avg_value": "224200"
+        },
+        {
+          "name": "Pine Ridge Shimla",
+          "avg_value": "116156"
+        },
+        {
+          "name": "Jungle House Goa",
+          "avg_value": "110330"
+        },
+        {
+          "name": "Seaview Estate Alibaug",
+          "avg_value": "108929"
+        }
+      ],
+      "narrative": "The Grand Villa Goa leads our portfolio with an impressive average booking value of \u20b92.02 lakhs, despite having only 3 bookings, suggesting premium positioning and strong pricing power in the Goa market. Beachfront Paradise Goa follows closely at \u20b91.38 lakhs average, reinforcing Goa's dominance as our highest-value destination with both top properties. Interestingly, Royal Haveli Jaipur and Seaview Estate Alibaug demonstrate volume-driven performance with 4 bookings each but lower average values (\u20b91.07 lakhs and \u20b992,313 respectively), indicating these properties may be capturing more frequent, mid-tier bookings. The spread between our highest and lowest performers is substantial\u2014The Grand Villa commands more than double the average booking value of Seaview Estate\u2014pointing to significant pricing stratification across our luxury portfolio.",
+      "error": "",
+      "latency_ms": 27902
+    },
+    {
+      "id": "q009",
+      "question": "What is the cancellation rate as a percentage of total bookings?",
+      "category": "cancellations",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "total_bookings": 49,
+          "cancelled_bookings": 16,
+          "cancellation_rate_pct": 24.62
+        }
+      ],
+      "golden_rows": [
+        {
+          "cancellation_rate_pct": "29.6"
+        }
+      ],
+      "narrative": "Lohono Stays is experiencing a cancellation rate of 24.62%, with 16 out of 49 total bookings being cancelled. This means that nearly one in four bookings doesn't convert to an actual stay, representing a significant revenue leakage point for the business. While some cancellations are inevitable in the hospitality industry, this rate suggests there may be opportunities to tighten cancellation policies, improve guest communication during the booking-to-stay journey, or implement stricter deposit requirements. Understanding the timing and reasons behind these 16 cancellations could unlock strategies to recover approximately a quarter of current booking volume and protect future revenue streams.",
+      "error": "",
+      "latency_ms": 25253
+    },
+    {
+      "id": "q010",
+      "question": "What is the month-over-month trend in bookings for 2024?",
+      "category": "bookings",
+      "difficulty": "hard",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row count: golden=6, agent=10",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "month": "2024-01",
+          "bookings": 2
+        },
+        {
+          "month": "2024-02",
+          "bookings": 2
+        },
+        {
+          "month": "2024-03",
+          "bookings": 1
+        },
+        {
+          "month": "2024-04",
+          "bookings": 1
+        },
+        {
+          "month": "2024-06",
+          "bookings": 1
+        },
+        {
+          "month": "2024-07",
+          "bookings": 1
+        },
+        {
+          "month": "2024-08",
+          "bookings": 2
+        },
+        {
+          "month": "2024-09",
+          "bookings": 2
+        },
+        {
+          "month": "2024-10",
+          "bookings": 1
+        },
+        {
+          "month": "2024-12",
+          "bookings": 1
+        }
+      ],
+      "golden_rows": [
+        {
+          "month": 1,
+          "month_name": "January  ",
+          "bookings": 2
+        },
+        {
+          "month": 3,
+          "month_name": "March    ",
+          "bookings": 3
+        },
+        {
+          "month": 8,
+          "month_name": "August   ",
+          "bookings": 1
+        },
+        {
+          "month": 9,
+          "month_name": "September",
+          "bookings": 1
+        },
+        {
+          "month": 10,
+          "month_name": "October  ",
+          "bookings": 2
+        },
+        {
+          "month": 11,
+          "month_name": "November ",
+          "bookings": 1
+        }
+      ],
+      "narrative": "Lohono Stays experienced relatively flat booking volumes throughout 2024, with monthly totals ranging between just 1 and 2 bookings across the year. The early months of January and February each captured 2 bookings, followed by a dip to single bookings in March through July. A modest uptick occurred in August and September with 2 bookings each month, before returning to single-booking months in October and December. Notably, May and November show no bookings at all in the dataset, creating gaps in an otherwise consistent low-volume pattern. This exceptionally low booking activity\u2014averaging just 1.4 bookings per month across the portfolio\u2014suggests either severe data limitations in the current dataset or potential operational challenges that merit immediate executive attention, as these numbers are far below expected performance for a luxury villa portfolio of 139+ properties.",
+      "error": "",
+      "latency_ms": 25437
+    },
+    {
+      "id": "q011",
+      "question": "What is the average booking value overall?",
+      "category": "revenue",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "avg_booking_value": 82476.02
+        }
+      ],
+      "golden_rows": [
+        {
+          "avg_booking_value": "93839"
+        }
+      ],
+      "narrative": "Across all bookings in Lohono Stays' portfolio of 139+ luxury villas, the average booking value stands at \u20b982,476. This figure represents a strong baseline for the company's typical transaction size, reflecting the premium positioning of their properties in the Indian luxury villa rental market. The relatively high average booking value underscores Lohono's success in attracting guests willing to invest significantly in curated, high-end vacation experiences. This metric serves as a key benchmark for evaluating property performance, pricing strategies, and revenue optimization opportunities across the portfolio.",
+      "error": "",
+      "latency_ms": 23596
+    },
+    {
+      "id": "q012",
+      "question": "How many active properties does Lohono have?",
+      "category": "properties",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "row count: golden=1, agent=1",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "active_properties": 19
+        }
+      ],
+      "golden_rows": [
+        {
+          "active_properties": 20
+        }
+      ],
+      "narrative": "Lohono Stays currently operates 19 active properties in its luxury villa portfolio. This represents the core inventory available for guest bookings across the company's various destinations in India. While the company's total footprint extends to 139+ properties, these 19 active villas form the operational backbone of the business at present. The relatively concentrated number of active properties suggests a curated, quality-focused approach to the luxury vacation rental market, allowing Lohono to maintain high standards of service and guest experience across its available inventory.",
+      "error": "",
+      "latency_ms": 16401
+    },
+    {
+      "id": "q013",
+      "question": "Compare total revenue in FY 2025 (April 2024 to March 2025) vs FY 2024 (April 2023 to March 2024).",
+      "category": "revenue",
+      "difficulty": "hard",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "row count: golden=2, agent=2",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "gross_gmv_fy24": 1138100.0
+        },
+        {
+          "gross_gmv_fy25": 1025400.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "fiscal_year": "FY2024",
+          "revenue": "1222598",
+          "bookings": 14
+        },
+        {
+          "fiscal_year": "FY2025",
+          "revenue": "687350",
+          "bookings": 6
+        }
+      ],
+      "narrative": "Lohono Stays experienced a revenue decline of approximately 9.9% between FY 2024 and FY 2025, with gross GMV dropping from \u20b911.38 lakh in FY 2024 (April 2023 to March 2024) to \u20b910.25 lakh in FY 2025 (April 2024 to March 2025). This represents a revenue shortfall of \u20b91.13 lakh year-over-year, which is notable given the company's portfolio of 139+ luxury properties across India. The decline suggests potential headwinds from either market conditions, pricing pressures, or occupancy challenges that warrant deeper investigation into property-level performance and seasonal booking patterns. Understanding which properties or regions drove this contraction will be critical for strategic planning and revenue recovery initiatives in the coming quarters.",
+      "error": "",
+      "latency_ms": 42156
+    },
+    {
+      "id": "q014",
+      "question": "What is the average length of stay for confirmed bookings?",
+      "category": "bookings",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "row count: golden=1, agent=1",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "avg_nights": 3.43
+        }
+      ],
+      "golden_rows": [
+        {
+          "avg_stay_days": "3.3"
+        }
+      ],
+      "narrative": "Guests at Lohono Stays typically book for an average of 3.43 nights when making confirmed reservations. This indicates that the majority of travelers are seeking extended weekend getaways or short vacation experiences rather than brief overnight stays or week-long trips. The length of stay suggests that Lohono's luxury villa offerings are particularly appealing for celebratory occasions, group gatherings, or relaxed family retreats that require multiple days to fully enjoy the premium amenities and experiences. This booking pattern is valuable for revenue forecasting and operational planning, as properties can optimize pricing strategies and housekeeping schedules around this consistent 3-4 night window.",
+      "error": "",
+      "latency_ms": 18773
+    },
+    {
+      "id": "q015",
+      "question": "Which state has the highest number of cancellations?",
+      "category": "cancellations",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row count: golden=1, agent=5",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "state": "Goa",
+          "cancellations": 4
+        },
+        {
+          "state": "Maharashtra",
+          "cancellations": 4
+        },
+        {
+          "state": "Uttarakhand",
+          "cancellations": 4
+        },
+        {
+          "state": "Himachal Pradesh",
+          "cancellations": 2
+        },
+        {
+          "state": "Tamil Nadu",
+          "cancellations": 2
+        }
+      ],
+      "golden_rows": [
+        {
+          "state": "Uttarakhand",
+          "cancellations": 4
+        }
+      ],
+      "narrative": "Lohono Stays is experiencing a three-way tie for the highest cancellation rate, with Goa, Maharashtra, and Uttarakhand each recording 4 cancellations. This represents a notably concentrated pattern among our most popular destinations, as these three states collectively account for 75% of all cancellations tracked. In contrast, Himachal Pradesh and Tamil Nadu show considerably better retention with just 2 cancellations each, suggesting these markets may have stronger booking commitment or different guest demographics. The overall cancellation volume across our 139+ property portfolio appears relatively low in absolute terms, though the concentration in our flagship states warrants closer examination of booking policies, seasonal factors, or property-specific issues that might be driving guest cancellations in these high-demand markets.",
+      "error": "",
+      "latency_ms": 23470
+    },
+    {
+      "id": "q016",
+      "question": "What percentage of total revenue comes from Maharashtra?",
+      "category": "revenue",
+      "difficulty": "hard",
+      "agent_success": false,
+      "sql_executed": false,
+      "result_match": null,
+      "result_match_reason": "",
+      "geval_score": null,
+      "agent_rows": [],
+      "golden_rows": [],
+      "narrative": "",
+      "error": "golden SQL failed: function round(double precision, integer) does not exist\nLINE 1: SELECT ROUND(100.0 * SUM(CASE WHEN rl.state = 'Maharashtra' ...\n               ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n",
+      "latency_ms": 0
+    },
+    {
+      "id": "q017",
+      "question": "How many bookings were made in 2025?",
+      "category": "bookings",
+      "difficulty": "easy",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row 0, numeric[0]: expected 11.0, got 17.0 (>50% diff)",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "bookings": 17
+        }
+      ],
+      "golden_rows": [
+        {
+          "bookings_2025": 11
+        }
+      ],
+      "narrative": "Lohono Stays recorded **17 bookings in 2025** to date, reflecting early-year activity as guests begin planning their luxury villa escapes. While this figure represents a snapshot of the year's first phase, it establishes a baseline for tracking momentum as peak travel seasons approach. The count suggests steady initial demand, though it's worth monitoring how booking velocity accelerates through Q2 and Q3 when leisure travel typically surges. This early traction positions the portfolio to capture growth as marketing campaigns ramp up and seasonal demand intensifies across India's premier destinations.",
+      "error": "",
+      "latency_ms": 26461
+    },
+    {
+      "id": "q018",
+      "question": "Which properties have never had a confirmed booking?",
+      "category": "properties",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": false,
+      "result_match_reason": "row count: golden=4, agent=3",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "id": 19,
+          "name": "Noor",
+          "slug": "noor-alibaug",
+          "location": "Alibaug"
+        },
+        {
+          "id": 18,
+          "name": "Courtyard Villa",
+          "slug": "courtyard-goa",
+          "location": "Goa"
+        },
+        {
+          "id": 20,
+          "name": "The Homestead",
+          "slug": "homestead-lonavala",
+          "location": "Lonavala / Khandala"
+        }
+      ],
+      "golden_rows": [
+        {
+          "name": "Courtyard Villa"
+        },
+        {
+          "name": "Forest Lodge Jim Corbett"
+        },
+        {
+          "name": "Noor"
+        },
+        {
+          "name": "The Homestead"
+        }
+      ],
+      "narrative": "Out of Lohono's 139+ luxury properties, just three have never secured a confirmed booking: Noor in Alibaug, Courtyard Villa in Goa, and The Homestead in Lonavala/Khandala. This represents only 2% of the portfolio, suggesting strong market penetration overall, though these specific villas warrant immediate attention from the revenue management team. The geographic spread across three popular destinations\u2014Alibaug, Goa, and Lonavala\u2014indicates the issue isn't location-based but may relate to pricing, marketing visibility, or property-specific factors. Given that neighboring properties in these same markets typically perform well, targeted interventions such as promotional pricing, enhanced photography, or strategic partnerships could quickly convert these zero-booking properties into revenue generators.",
+      "error": "",
+      "latency_ms": 22126
+    },
+    {
+      "id": "q019",
+      "question": "What is the total revenue from Goa properties?",
+      "category": "revenue",
+      "difficulty": "medium",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "values match",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "total_revenue": 1114000.0
+        }
+      ],
+      "golden_rows": [
+        {
+          "goa_revenue": "909485"
+        }
+      ],
+      "narrative": "Lohono Stays' Goa properties generated a total revenue of \u20b911.14 lakhs during the analyzed period. This figure represents the combined performance across all villa offerings in one of India's most sought-after leisure destinations. Goa's consistent appeal as a beach and lifestyle destination is reflected in this solid revenue contribution to the portfolio. The territory continues to be a key revenue driver for Lohono's luxury vacation rental business, underscoring the importance of maintaining strong property availability and guest experiences in this coastal market.",
+      "error": "",
+      "latency_ms": 22265
+    },
+    {
+      "id": "q020",
+      "question": "What is the booking conversion rate \u00e2\u20ac\u201d confirmed bookings as a percentage of total enquiries?",
+      "category": "bookings",
+      "difficulty": "hard",
+      "agent_success": true,
+      "sql_executed": true,
+      "result_match": true,
+      "result_match_reason": "row count: golden=1, agent=1",
+      "geval_score": null,
+      "agent_rows": [
+        {
+          "total_enquiries": 75,
+          "total_bookings": 49,
+          "booking_conversion_rate_pct": 65.33
+        }
+      ],
+      "golden_rows": [
+        {
+          "total_enquiries": 80,
+          "confirmed_bookings": 38,
+          "conversion_rate_pct": "47.5"
+        }
+      ],
+      "narrative": "Lohono Stays demonstrates a remarkably strong booking conversion rate of 65.33%, with 49 confirmed bookings generated from 75 total enquiries. This means that nearly two out of every three customer enquiries result in a confirmed reservation, which is exceptionally high for the luxury hospitality sector where conversion rates typically hover between 20-40%. The data reflects either highly qualified leads entering the sales funnel, effective sales processes converting interest into bookings, or both. This conversion performance suggests that Lohono's properties are well-matched to customer expectations and that pricing, availability, and service responsiveness are effectively closing deals at an impressive rate.",
+      "error": "",
+      "latency_ms": 30530
+    }
+  ]
+}

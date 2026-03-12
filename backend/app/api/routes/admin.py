@@ -4,6 +4,7 @@ All endpoints are prefixed with /admin.
 """
 import json
 import logging
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
@@ -15,6 +16,11 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+def _clean(d: dict) -> dict:
+    """Convert Decimal → float so FastAPI can JSON-serialize."""
+    return {k: float(v) if isinstance(v, Decimal) else v for k, v in d.items()}
 
 LORE_PATH = Path(__file__).parent.parent.parent.parent / "knowledge" / "lore.json"
 
@@ -63,7 +69,7 @@ def get_stats(days: int = Query(30, ge=1, le=365)):
                     FROM query_history
                     WHERE created_at >= NOW() - (%s || ' days')::INTERVAL
                 """, (str(days),))
-                row = dict(cur.fetchone())
+                row = _clean(dict(cur.fetchone()))
 
         # LORE entry count
         lore_count = 0
@@ -98,7 +104,7 @@ def get_volume(days: int = Query(30, ge=1, le=365)):
                     GROUP BY DATE(created_at)
                     ORDER BY DATE(created_at)
                 """, (str(days),))
-                return [dict(r) for r in cur.fetchall()]
+                return [_clean(dict(r)) for r in cur.fetchall()]
     finally:
         conn.close()
 
@@ -119,7 +125,7 @@ def get_cost(days: int = Query(30, ge=1, le=365)):
                     GROUP BY DATE(created_at)
                     ORDER BY DATE(created_at)
                 """, (str(days),))
-                return [dict(r) for r in cur.fetchall()]
+                return [_clean(dict(r)) for r in cur.fetchall()]
     finally:
         conn.close()
 
@@ -142,7 +148,7 @@ def get_tokens(days: int = Query(30, ge=1, le=365)):
                     GROUP BY DATE(created_at)
                     ORDER BY DATE(created_at)
                 """, (str(days),))
-                return [dict(r) for r in cur.fetchall()]
+                return [_clean(dict(r)) for r in cur.fetchall()]
     finally:
         conn.close()
 
@@ -185,7 +191,7 @@ def get_response_time(days: int = Query(30, ge=1, le=365)):
                     GROUP BY DATE(created_at)
                     ORDER BY DATE(created_at)
                 """, (str(days),))
-                return [dict(r) for r in cur.fetchall()]
+                return [_clean(dict(r)) for r in cur.fetchall()]
     finally:
         conn.close()
 
@@ -221,14 +227,14 @@ def get_queries(
                     ORDER BY created_at DESC
                     LIMIT %s OFFSET %s
                 """, (str(days), limit, offset))
-                rows = [dict(r) for r in cur.fetchall()]
+                rows = [_clean(dict(r)) for r in cur.fetchall()]
 
                 # Total count for pagination
                 cur.execute(
-                    "SELECT COUNT(*) FROM query_history WHERE created_at >= NOW() - (%s || ' days')::INTERVAL",
+                    "SELECT COUNT(*) AS total FROM query_history WHERE created_at >= NOW() - (%s || ' days')::INTERVAL",
                     (str(days),)
                 )
-                total = cur.fetchone()[0]
+                total = cur.fetchone()["total"]
 
         return {"rows": rows, "total": total}
     finally:
@@ -255,7 +261,7 @@ def get_top_failures(limit: int = Query(10, ge=1, le=50)):
                     ORDER BY failure_count DESC
                     LIMIT %s
                 """, (limit,))
-                return [dict(r) for r in cur.fetchall()]
+                return [_clean(dict(r)) for r in cur.fetchall()]
     finally:
         conn.close()
 
