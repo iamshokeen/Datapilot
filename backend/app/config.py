@@ -42,6 +42,9 @@ class Settings(BaseSettings):
 
     redis_url: str = "redis://localhost:6379/0"
     rate_limit_per_minute: int = 30
+    # Prompt caching: only net-positive under sustained traffic (>1 query/5min).
+    # Set True in production, False in development to avoid paying write premium with no reads.
+    enable_prompt_caching: bool = False
     sql_query_timeout_seconds: int = 30
     sql_max_rows_returned: int = 1000
     embedding_model: str = "text-embedding-3-small"
@@ -53,3 +56,11 @@ def get_settings() -> Settings:
     return Settings()
 
 settings = get_settings()
+
+
+def system_block(text: str) -> dict:
+    """Build an Anthropic system prompt block, with caching only if enabled."""
+    block: dict = {"type": "text", "text": text}
+    if settings.enable_prompt_caching:
+        block["cache_control"] = {"type": "ephemeral"}
+    return block

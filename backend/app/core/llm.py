@@ -68,9 +68,10 @@ class AnthropicClient(LLMClient):
 
     def complete_with_usage(self, system_prompt, user_message, temperature=0.0, max_tokens=2048,
                             cache_system_prompt: bool = False) -> tuple[str, dict]:
+        from app.config import settings, system_block
         system = (
-            [{"type": "text", "text": system_prompt, "cache_control": {"type": "ephemeral"}}]
-            if cache_system_prompt
+            [system_block(system_prompt)]
+            if cache_system_prompt and settings.enable_prompt_caching
             else system_prompt
         )
         response = self._client.messages.create(

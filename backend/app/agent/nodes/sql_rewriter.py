@@ -9,7 +9,7 @@ import re
 import anthropic
 
 from app.agent.state import AgentState
-from app.config import settings
+from app.config import settings, system_block
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ Please provide a corrected SQL query."""
         response = _client.messages.create(
             model="claude-sonnet-4-5",
             max_tokens=8192,
-            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+            system=[system_block(system)],
             messages=[{"role": "user", "content": prompt}],
         )
         node_usage = {

@@ -10,7 +10,7 @@ import os
 import anthropic
 
 from app.agent.state import AgentState
-from app.config import settings
+from app.config import settings, system_block
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +114,7 @@ Please write the narrative summary."""
         response = _client.messages.create(
             model="claude-sonnet-4-5",
             max_tokens=512,
-            system=[{"type": "text", "text": _SYSTEM, "cache_control": {"type": "ephemeral"}}],
+            system=[system_block(_SYSTEM)],
             messages=[{"role": "user", "content": prompt}],
         )
         node_usage = {
