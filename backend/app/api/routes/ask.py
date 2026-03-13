@@ -84,7 +84,7 @@ async def ask_question(request: AskRequest):
                 session_id=session_id, query_id=-1, llm_model=gen_result.model,
                 total_time_ms=round((time.time() - total_start) * 1000, 2))
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         try:
             sql_result = await loop.run_in_executor(
                 _executor, _execute_sql_sync,

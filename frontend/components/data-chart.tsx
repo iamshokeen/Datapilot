@@ -164,8 +164,8 @@ export function DataChart({ type, data, xAxis, yAxis }: DataChartProps) {
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 10, right: 20, left: 10, bottom: 20 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
-          <XAxis dataKey={xAxis} {...axisStyle} name={xAxis} tickFormatter={formatNumber} width={60} />
-          <YAxis dataKey={yAxis} {...axisStyle} name={yAxis} tickFormatter={formatNumber} width={60} />
+          <XAxis dataKey={xAxis} type="number" {...axisStyle} name={xAxis} tickFormatter={formatNumber} width={60} />
+          <YAxis dataKey={yAxis} type="number" {...axisStyle} name={yAxis} tickFormatter={formatNumber} width={60} />
           <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: "3 3" }} />
           <Scatter data={data} fill={COLORS[0]} />
         </ScatterChart>

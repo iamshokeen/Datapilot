@@ -222,7 +222,7 @@ export function ChatInterface({
                         <QueryResult
                           response={msg.response}
                           sessionId={sessionId}
-                          turnNumber={messages.filter(m => m.response !== null).findIndex(m => m.id === msg.id)}
+                          turnNumber={messages.filter(m => m.response != null).indexOf(msg)}
                           question={msg.question}
                         />
                       </div>

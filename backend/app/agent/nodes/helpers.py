@@ -49,9 +49,16 @@ def accumulate_result(state: AgentState) -> AgentState:
 
 def _jsonify_value(v):
     """Convert non-JSON-serializable types to JSON-compatible ones."""
+    import datetime
     from decimal import Decimal
     if isinstance(v, Decimal):
         return float(v)
+    if isinstance(v, (datetime.datetime, datetime.date)):
+        return v.isoformat()
+    if isinstance(v, dict):
+        return _jsonify_dict(v)
+    if isinstance(v, list):
+        return [_jsonify_value(i) for i in v]
     return v
 
 

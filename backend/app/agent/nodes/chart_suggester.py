@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # Chart type decision rules (order matters — first match wins)
 _RULES = [
     # (condition_fn, chart_type, reason_template)
+    # Time-series first — date columns always → line
     (
         lambda cols, numeric, cat, rows: len(rows) > 1 and any(
             "date" in c.lower() or "month" in c.lower() or "year" in c.lower() or "week" in c.lower()
@@ -21,15 +22,16 @@ _RULES = [
         "line",
         "Time-series data is best visualised as a line chart to show trends over time.",
     ),
+    # Pie before bar — more specific (pie is a subset of bar's conditions)
+    (
+        lambda cols, numeric, cat, rows: len(cat) == 1 and len(numeric) == 1 and 2 <= len(rows) <= 8,
+        "pie",
+        "Small number of categories with a single metric suits a pie chart for part-of-whole analysis.",
+    ),
     (
         lambda cols, numeric, cat, rows: len(cat) == 1 and len(numeric) >= 1 and len(rows) <= 20,
         "bar",
         "Categorical comparison with a single grouping variable suits a bar chart.",
-    ),
-    (
-        lambda cols, numeric, cat, rows: len(cat) == 1 and len(numeric) == 1 and len(rows) <= 8,
-        "pie",
-        "Small number of categories with a single metric suits a pie chart for part-of-whole analysis.",
     ),
     (
         lambda cols, numeric, cat, rows: len(numeric) >= 2,

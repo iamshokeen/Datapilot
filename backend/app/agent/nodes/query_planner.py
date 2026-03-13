@@ -79,10 +79,11 @@ def query_planner(state: AgentState) -> AgentState:
             "cache_write": getattr(response.usage, "cache_creation_input_tokens", 0) or 0,
         }
         raw = response.content[0].text.strip()
+        # Strip markdown code fences robustly (handles ```json, ```JSON, ``` json, etc.)
         if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
+            raw = raw.split("```")[1].strip()
+            if raw.lower().startswith("json"):
+                raw = raw[4:].strip()
         parsed = json.loads(raw)
         sub_questions = parsed.get("sub_questions", [question])
         requires_new_query = parsed.get("requires_new_query", True)

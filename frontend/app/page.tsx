@@ -21,7 +21,10 @@ export default function DataPilotApp() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_CONNECTION)
-      if (stored) setConnection(JSON.parse(stored))
+      if (stored) {
+        setConnection(JSON.parse(stored))
+        setSessionId(crypto.randomUUID())
+      }
     } catch {}
     try {
       const history = localStorage.getItem(STORAGE_KEY_HISTORY)

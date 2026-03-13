@@ -31,7 +31,7 @@ async def connect_database(request: ConnectRequest):
         sample_rows_per_table=3,
     )
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     success, message = await loop.run_in_executor(_executor, introspector.test_connection)
     if not success:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
