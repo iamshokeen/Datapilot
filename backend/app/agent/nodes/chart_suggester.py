@@ -57,7 +57,11 @@ _FALLBACK = {
 def _infer_axes(cols: list[str], numeric: list[str], cat: list[str], chart_type: str) -> dict:
     date_cols = [c for c in cols if any(k in c.lower() for k in ("date", "month", "year", "week", "day"))]
     x = date_cols[0] if date_cols else (cat[0] if cat else (numeric[0] if numeric else None))
-    y = numeric[0] if numeric else None
+    # Scatter: use 2nd numeric for y so both axes are different columns
+    if chart_type == "scatter" and len(numeric) >= 2:
+        y = numeric[1]
+    else:
+        y = numeric[0] if numeric else None
     group = cat[1] if len(cat) > 1 else None
     return {"x_axis": x, "y_axis": y, "group_by": group}
 
