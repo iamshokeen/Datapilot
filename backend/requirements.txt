@@ -32,3 +32,4 @@ click>=8.1.7langgraph>=0.2.0
 langchain-core>=0.3.0
 pandas>=2.0.0
 numpy>=1.26.0
+slowapi==0.1.9

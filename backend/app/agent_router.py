@@ -6,17 +6,21 @@ import logging
 import time
 from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.agent.graph.agent_graph import agent
 from app.core.conversation import get_history, save_turn
 from app.core.cost import aggregate_tokens, compute_cost_usd
 from app.core.echo import save_to_history
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/agent", tags=["agent"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 class AgentAskRequest(BaseModel):
@@ -60,20 +64,21 @@ class AgentAskResponse(BaseModel):
 
 
 @router.post("/ask", response_model=AgentAskResponse, summary="Multi-step analytics agent with ECHO cache")
-async def agent_ask(request: AgentAskRequest):
-    print(f"=== AGENT ASK === connection_id: {request.connection_id}, question: {request.question}")
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
+async def agent_ask(request: Request, body: AgentAskRequest):
+    print(f"=== AGENT ASK === connection_id: {body.connection_id}, question: {body.question}")
     start = time.perf_counter()
-    logger.info("[/agent/ask] Q: %s | conn: %s | session: %s", request.question, request.connection_id, request.session_id)
+    logger.info("[/agent/ask] Q: %s | conn: %s | session: %s", body.question, body.connection_id, body.session_id)
 
     conversation_history: list[dict] = []
-    if request.session_id:
-        conversation_history = get_history(request.session_id)
+    if body.session_id:
+        conversation_history = get_history(body.session_id)
         logger.info("[/agent/ask] Loaded %d history turns", len(conversation_history))
 
     initial_state = {
-        "connection_id": request.connection_id,
-        "original_question": request.question,
-        "session_id": request.session_id,
+        "connection_id": body.connection_id,
+        "original_question": body.question,
+        "session_id": body.session_id,
         "conversation_history": conversation_history,
         "sub_questions": [],
         "current_sub_q_index": 0,
@@ -142,9 +147,9 @@ async def agent_ask(request: AgentAskRequest):
                 break
         if best_sql:
             save_to_history(
-                connection_id=request.connection_id,
-                session_id=request.session_id,
-                question=request.question,
+                connection_id=body.connection_id,
+                session_id=body.session_id,
+                question=body.question,
                 sql=best_sql,
                 echo_tier=echo_tier or 3,
                 rows_returned=final.get("total_rows", 0),
@@ -159,12 +164,12 @@ async def agent_ask(request: AgentAskRequest):
             )
 
     # Save conversation turn
-    if request.session_id:
+    if body.session_id:
         try:
             save_turn(
-                session_id=request.session_id,
-                connection_id=request.connection_id,
-                question=request.question,
+                session_id=body.session_id,
+                connection_id=body.connection_id,
+                question=body.question,
                 narrative=final_state.get("narrative", ""),
                 data=final.get("data", []),
             )
@@ -192,7 +197,7 @@ async def agent_ask(request: AgentAskRequest):
     )
 
     response = AgentAskResponse(
-        question=final.get("question", request.question),
+        question=final.get("question", body.question),
         sub_questions=final.get("sub_questions", []),
         narrative=final.get("narrative", ""),
         chart_suggestion=chart_out,
@@ -201,7 +206,7 @@ async def agent_ask(request: AgentAskRequest):
         total_rows=final.get("total_rows", 0),
         sub_question_count=final.get("sub_question_count", 0),
         processing_time_ms=elapsed_ms,
-        session_id=request.session_id,
+        session_id=body.session_id,
         requires_new_query=final_state.get("requires_new_query", True),
         echo_tier=echo_tier,
         echo_similarity=final_state.get("echo_similarity"),
